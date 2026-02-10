@@ -1,12 +1,10 @@
 """Router Agent for intent classification"""
 
-from typing import Any, Dict
-
 from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 from app.agents.base import BaseAgent
-from app.agents.state import ConversationState, Message
+from app.agents.state import ConversationState
 from app.config import settings
 
 
@@ -23,11 +21,12 @@ class RouterAgent(BaseAgent):
     ROUTING_PROMPT = """You are an intelligent routing agent for a customer support system.
 Analyze the user's message and classify the intent into one of these categories:
 
-1. **knowledge**: User is asking a question that requires retrieving information from the knowledge base
-   Examples: "How do I reset my password?", "What are your return policies?", "Tell me about feature X"
+1. **knowledge**: User is asking a question that requires retrieving information
+   from the knowledge base
+   Examples: "How do I reset my password?", "What are your return policies?"
 
 2. **action**: User wants to perform an action or needs tool execution
-   Examples: "Check my order status", "Cancel my subscription", "Update my address"
+   Examples: "Check my order status", "Cancel my subscription"
 
 3. **conversation**: General conversation, greetings, or chitchat
    Examples: "Hello", "Thanks for your help", "How are you?"

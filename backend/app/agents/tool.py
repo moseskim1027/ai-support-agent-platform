@@ -1,7 +1,6 @@
 """Tool Agent for function calling"""
 
 import json
-from typing import Any, Dict, List
 
 from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
@@ -162,7 +161,10 @@ Response:"""
 
         except Exception as e:
             self.logger.error(f"Error in tool agent: {e}", exc_info=True)
-            state.response = "I encountered an error while trying to help you. Please try rephrasing your request."
+            state.response = (
+                "I encountered an error while trying to help you. "
+                "Please try rephrasing your request."
+            )
             state.next_step = "end"
 
         return state

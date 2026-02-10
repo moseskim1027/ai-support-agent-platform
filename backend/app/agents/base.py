@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 from app.agents.state import ConversationState
-from app.config import settings
 
 logger = logging.getLogger(__name__)
 

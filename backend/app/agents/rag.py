@@ -73,11 +73,16 @@ Answer:"""
     def _add_sample_documents(self):
         """Add sample knowledge base documents"""
         sample_docs = [
-            "Our return policy allows returns within 30 days of purchase. Items must be unused and in original packaging.",
-            "To reset your password, go to Settings > Account > Reset Password. You will receive an email with instructions.",
-            "We offer 24/7 customer support via chat, email, and phone. Premium members get priority support.",
-            "Shipping is free for orders over $50. Standard shipping takes 3-5 business days.",
-            "Our AI agent platform supports multiple languages including English, Spanish, French, German, and Japanese.",
+            "Our return policy allows returns within 30 days of purchase. "
+            "Items must be unused and in original packaging.",
+            "To reset your password, go to Settings > Account > Reset Password. "
+            "You will receive an email with instructions.",
+            "We offer 24/7 customer support via chat, email, and phone. "
+            "Premium members get priority support.",
+            "Shipping is free for orders over $50. "
+            "Standard shipping takes 3-5 business days.",
+            "Our AI agent platform supports multiple languages including "
+            "English, Spanish, French, German, and Japanese.",
         ]
 
         try:

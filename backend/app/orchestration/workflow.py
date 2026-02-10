@@ -130,7 +130,10 @@ class AgentOrchestrator:
         except Exception as e:
             logger.error(f"Error in orchestration: {e}", exc_info=True)
             return {
-                "message": "I apologize, but I encountered an error processing your request. Please try again.",
+                "message": (
+                    "I apologize, but I encountered an error processing "
+                    "your request. Please try again."
+                ),
                 "intent": "error",
                 "agent_used": "none",
                 "metadata": {"error": str(e)},
