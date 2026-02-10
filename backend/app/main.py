@@ -17,8 +17,8 @@ app = FastAPI(
     title="AI Support Agent Platform",
     description="Production-ready AI customer support agent platform",
     version="0.1.0",
-    docs_url="/api/docs" if settings.is_development else None,  # Disable docs in production
-    redoc_url="/api/redoc" if settings.is_development else None,
+    docs_url="/api/docs" if not settings.is_production else None,  # Disable docs in production
+    redoc_url="/api/redoc" if not settings.is_production else None,
     debug=settings.debug,
 )
 
