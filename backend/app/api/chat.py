@@ -1,14 +1,21 @@
 """Chat API endpoints"""
 
 import logging
+import uuid
 from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from app.agents.state import Message as AgentMessage
+from app.orchestration import AgentOrchestrator
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+# Initialize orchestrator (singleton)
+orchestrator = AgentOrchestrator()
 
 
 class Message(BaseModel):
@@ -22,7 +29,7 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     """Chat request model"""
 
-    message: str = Field(..., description="User message")
+    message: str = Field(..., min_length=1, description="User message")
     conversation_id: Optional[str] = Field(None, description="Conversation ID for context")
     history: Optional[List[Message]] = Field(
         default_factory=list, description="Conversation history"
@@ -35,6 +42,7 @@ class ChatResponse(BaseModel):
     message: str = Field(..., description="Agent response")
     conversation_id: str = Field(..., description="Conversation ID")
     agent_type: str = Field(..., description="Type of agent that handled the request")
+    intent: Optional[str] = Field(None, description="Classified intent")
     sources: Optional[List[str]] = Field(default_factory=list, description="Sources used for RAG")
     metadata: Optional[dict] = Field(default_factory=dict, description="Additional metadata")
 
@@ -43,6 +51,9 @@ class ChatResponse(BaseModel):
 async def chat(request: ChatRequest):
     """
     Chat endpoint for agent interactions
+
+    Uses multi-agent orchestration with LangGraph to route requests
+    to appropriate specialized agents (RAG, Tool, or Conversational).
 
     Args:
         request: Chat request with message and optional context
@@ -53,18 +64,29 @@ async def chat(request: ChatRequest):
     try:
         logger.info(f"Received chat request: {request.message[:50]}...")
 
-        # TODO: Implement agent orchestration
-        # For now, return a placeholder response
+        # Convert history to agent message format
+        conversation_history = [
+            AgentMessage(role=msg.role, content=msg.content) for msg in request.history
+        ]
+
+        # Process through agent orchestration
+        result = await orchestrator.process(
+            user_message=request.message, conversation_history=conversation_history
+        )
+
+        # Generate or use existing conversation ID
+        conversation_id = request.conversation_id or str(uuid.uuid4())
 
         return ChatResponse(
-            message=(
-                "Hello! I'm your AI support assistant. "
-                "I'm currently being set up. Please check back soon!"
-            ),
-            conversation_id=request.conversation_id or "demo-conv-001",
-            agent_type="router",
+            message=result["message"],
+            conversation_id=conversation_id,
+            agent_type=result.get("agent_used", "unknown"),
+            intent=result.get("intent"),
             sources=[],
-            metadata={"timestamp": datetime.utcnow().isoformat(), "status": "demo"},
+            metadata={
+                "timestamp": datetime.utcnow().isoformat(),
+                **result.get("metadata", {}),
+            },
         )
 
     except Exception as e:
