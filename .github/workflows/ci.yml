@@ -102,14 +102,6 @@ jobs:
           cd backend
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./backend/coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-        continue-on-error: true
-
   security:
     name: Security Scan
     runs-on: ubuntu-latest
