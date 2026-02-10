@@ -61,30 +61,34 @@ class AgentOrchestrator:
 
         return workflow.compile()
 
-    async def _router_node(self, state: ConversationState) -> dict:
+    async def _router_node(self, state: dict) -> dict:
         """Router node"""
-        updated_state = await self.router.run(state)
+        state_obj = ConversationState(**state)
+        updated_state = await self.router.run(state_obj)
         return updated_state.model_dump()
 
-    async def _rag_node(self, state: ConversationState) -> dict:
+    async def _rag_node(self, state: dict) -> dict:
         """RAG agent node"""
-        updated_state = await self.rag_agent.run(state)
+        state_obj = ConversationState(**state)
+        updated_state = await self.rag_agent.run(state_obj)
         return updated_state.model_dump()
 
-    async def _tool_node(self, state: ConversationState) -> dict:
+    async def _tool_node(self, state: dict) -> dict:
         """Tool agent node"""
-        updated_state = await self.tool_agent.run(state)
+        state_obj = ConversationState(**state)
+        updated_state = await self.tool_agent.run(state_obj)
         return updated_state.model_dump()
 
-    async def _respond_node(self, state: ConversationState) -> dict:
+    async def _respond_node(self, state: dict) -> dict:
         """Responder agent node"""
-        updated_state = await self.responder.run(state)
+        state_obj = ConversationState(**state)
+        updated_state = await self.responder.run(state_obj)
         return updated_state.model_dump()
 
-    def _route_decision(self, state: ConversationState) -> str:
+    def _route_decision(self, state: dict) -> str:
         """Determine which agent to route to based on intent"""
-        next_step = state.next_step or "respond"
-        logger.info(f"Routing to: {next_step} (intent: {state.intent})")
+        next_step = state.get("next_step") or "respond"
+        logger.info(f"Routing to: {next_step} (intent: {state.get('intent')})")
         return next_step
 
     async def process(self, user_message: str, conversation_history: list = None) -> Dict[str, Any]:
