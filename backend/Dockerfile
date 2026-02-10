@@ -13,32 +13,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --user -r requirements.txt
+# Install PyTorch CPU-only first to avoid CUDA dependencies
+RUN pip install --no-cache-dir --user \
+    torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining dependencies
+RUN pip install --no-cache-dir --user --no-warn-script-location \
+    -r requirements.txt
 
 # Final stage
 FROM python:3.11-slim
 
-# Create non-root user first
+# Create non-root user
 RUN useradd -m -u 1000 appuser
 
-# Set working directory
+# Set working directory and change ownership
 WORKDIR /app
-
-# Copy Python dependencies from builder to user directory
-COPY --from=builder /root/.local /home/appuser/.local
-
-# Copy application code
-COPY . .
-
-# Change ownership of app directory and .local
-RUN chown -R appuser:appuser /app /home/appuser/.local
+RUN chown appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
 
+# Copy Python dependencies from builder
+COPY --from=builder --chown=appuser:appuser /root/.local /home/appuser/.local
+
 # Make sure scripts in .local are usable
 ENV PATH=/home/appuser/.local/bin:$PATH
+
+# Copy application code
+COPY --chown=appuser:appuser . .
 
 # Expose port
 EXPOSE 8000
