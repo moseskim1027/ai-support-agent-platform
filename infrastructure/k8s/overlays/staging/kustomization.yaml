@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: staging
+
+bases:
+  - ../../base
+
+resources:
+  - namespace.yaml
+  - secrets.yaml
+
+configMapGenerator:
+  - name: backend-config
+    behavior: merge
+    literals:
+      - environment=staging
+      - log_level=debug
+
+replicas:
+  - name: backend
+    count: 2
+
+images:
+  - name: <ECR_REGISTRY>/ai-support-agent-platform
+    newTag: staging-latest
+
+patches:
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: backend-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 5
