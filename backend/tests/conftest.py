@@ -16,7 +16,7 @@ def setup_test_environment():
     os.environ["OPENAI_API_KEY"] = "sk-test-key-for-testing-only"
 
     # Set optional service URLs to avoid connection attempts
-    os.environ["POSTGRES_URL"] = "postgresql://test:test@localhost:5432/test_db"
+    os.environ["POSTGRES_URL"] = "postgresql://test:test@localhost:5432/test_db"  # noqa: E501
     os.environ["REDIS_URL"] = "redis://localhost:6379/0"
     os.environ["QDRANT_URL"] = "http://localhost:6333"
 

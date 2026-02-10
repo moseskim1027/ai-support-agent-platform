@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.agents.state import Message
 from app.orchestration.workflow import AgentOrchestrator
 
 
@@ -28,12 +27,12 @@ async def test_orchestrator_initialization():
 async def test_orchestrator_knowledge_flow():
     """Test complete workflow for knowledge questions"""
     with patch.object(AgentOrchestrator, "_build_workflow") as mock_build:
-        # Return a dict, not a MagicMock, since LangGraph works with dicts
+        # Return dict (not MagicMock) - LangGraph works with dicts
         mock_state = {
             "response": "Our return policy allows returns within 30 days.",
             "intent": "knowledge",
             "current_agent": "rag",
-            "messages": [{"role": "user", "content": "What is your return policy?"}],
+            "messages": [{"role": "user", "content": "What is your return policy?"}],  # noqa: E501
             "tool_calls": [],
             "retrieved_docs": ["doc1"],
             "metadata": {},
@@ -54,7 +53,7 @@ async def test_orchestrator_knowledge_flow():
 async def test_orchestrator_action_flow():
     """Test complete workflow for action requests"""
     with patch.object(AgentOrchestrator, "_build_workflow") as mock_build:
-        # Return a dict, not a MagicMock, since LangGraph works with dicts
+        # Return dict (not MagicMock) - LangGraph works with dicts
         mock_state = {
             "response": "Your order has been shipped.",
             "intent": "action",
@@ -80,7 +79,7 @@ async def test_orchestrator_action_flow():
 async def test_orchestrator_conversation_flow():
     """Test complete workflow for conversation"""
     with patch.object(AgentOrchestrator, "_build_workflow") as mock_build:
-        # Return a dict, not a MagicMock, since LangGraph works with dicts
+        # Return dict (not MagicMock) - LangGraph works with dicts
         mock_state = {
             "response": "Hello! How can I help you?",
             "intent": "conversation",

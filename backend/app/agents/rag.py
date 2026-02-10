@@ -14,11 +14,13 @@ from app.config import settings
 
 class RAGAgent(BaseAgent):
     """
-    RAG Agent retrieves relevant information from knowledge base and generates responses
+    RAG Agent retrieves relevant information from knowledge base
+    and generates responses
     """
 
     RAG_PROMPT = """You are a helpful customer support assistant.
-Answer the user's question based on the provided context from the knowledge base.
+Answer the user's question based on the provided context from the
+knowledge base.
 
 Context from knowledge base:
 {context}
@@ -40,7 +42,7 @@ Answer:"""
             temperature=0.3,
             openai_api_key=settings.openai_api_key,
         )
-        self.embeddings = OpenAIEmbeddings(openai_api_key=settings.openai_api_key)
+        self.embeddings = OpenAIEmbeddings(openai_api_key=settings.openai_api_key)  # noqa: E501
         self.prompt = ChatPromptTemplate.from_template(self.RAG_PROMPT)
 
         # Initialize Qdrant client
@@ -61,7 +63,7 @@ Answer:"""
             if self.collection_name not in collection_names:
                 self.qdrant.create_collection(
                     collection_name=self.collection_name,
-                    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+                    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),  # noqa: E501
                 )
                 self.logger.info(f"Created collection: {self.collection_name}")
 
@@ -72,7 +74,6 @@ Answer:"""
 
     def _add_sample_documents(self):
         """Load and add documents from data/documents directory"""
-        import os
         from pathlib import Path
 
         # Path to documents directory
@@ -90,7 +91,8 @@ Answer:"""
                     with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read().strip()
                         if content:
-                            # Split long documents into chunks (max 500 chars for better retrieval)
+                            # Split long documents into chunks
+                            # (max 500 chars for better retrieval)
                             chunks = self._chunk_text(content, max_length=500)
                             for chunk in chunks:
                                 documents.append(
@@ -119,15 +121,17 @@ Answer:"""
                     )
                 )
 
-            self.qdrant.upsert(collection_name=self.collection_name, points=points)
+            self.qdrant.upsert(collection_name=self.collection_name, points=points)  # noqa: E501
+            num_files = len(list(docs_dir.glob("*.txt")))
             self.logger.info(
-                f"Added {len(documents)} document chunks from {len(list(docs_dir.glob('*.txt')))} files"
-            )
+                f"Added {len(documents)} document chunks "
+                f"from {num_files} files"  # noqa: E501
+            )  # noqa: E501
         except Exception as e:
             self.logger.error(f"Error adding documents: {e}")
 
     def _chunk_text(self, text: str, max_length: int = 500) -> List[str]:
-        """Split text into chunks of approximately max_length characters"""
+        """Split text into chunks of approximately max_length chars"""
         # Split by paragraphs first
         paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
 
@@ -193,7 +197,7 @@ Answer:"""
             )
 
             # Extract document texts
-            documents = [hit.payload["text"] for hit in results if hit.score > 0.7]
+            documents = [hit.payload["text"] for hit in results if hit.score > 0.7]  # noqa: E501
 
             self.log_execution(
                 "retrieve_documents",
@@ -203,7 +207,7 @@ Answer:"""
             return documents
 
         except Exception as e:
-            self.logger.error(f"Error retrieving documents: {e}", exc_info=True)
+            self.logger.error(f"Error retrieving documents: {e}", exc_info=True)  # noqa: E501
             return []
 
     async def run(self, state: ConversationState) -> ConversationState:
@@ -219,7 +223,10 @@ Answer:"""
         self.log_execution("rag_agent_start", {"intent": state.intent})
 
         # Get last user message
-        user_message = next((msg for msg in reversed(state.messages) if msg.role == "user"), None)
+        user_message = next(
+            (msg for msg in reversed(state.messages) if msg.role == "user"),
+            None,
+        )
 
         if not user_message:
             state.response = "I'm sorry, I didn't receive a question."
@@ -239,7 +246,9 @@ Answer:"""
             )
 
             response = await self.llm.ainvoke(
-                self.prompt.format_messages(context=context, question=user_message.content)
+                self.prompt.format_messages(
+                    context=context, question=user_message.content
+                )  # noqa: E501
             )
 
             state.response = response.content
@@ -250,18 +259,27 @@ Answer:"""
                 Message(
                     role="assistant",
                     content=response.content,
-                    metadata={"agent": "rag", "num_docs_retrieved": len(documents)},
+                    metadata={
+                        "agent": "rag",
+                        "num_docs_retrieved": len(documents),
+                    },
                 )
             )
 
             self.log_execution(
                 "rag_response_generated",
-                {"response_length": len(response.content), "docs_used": len(documents)},
+                {
+                    "response_length": len(response.content),
+                    "docs_used": len(documents),
+                },
             )
 
         except Exception as e:
-            self.logger.error(f"Error generating RAG response: {e}", exc_info=True)
-            state.response = "I apologize, but I encountered an error processing your request."
+            self.logger.error(f"Error generating RAG response: {e}", exc_info=True)  # noqa: E501
+            state.response = (
+                "I apologize, but I encountered an error "
+                "processing your request."  # noqa: E501
+            )  # noqa: E501
             state.next_step = "end"
 
         return state
