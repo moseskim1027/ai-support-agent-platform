@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # Application
     environment: str = Field(
-        default="development", description="Environment: development, staging, production"
+        default="development", description="Environment: development, staging, production, test"
     )
     log_level: str = Field(default="info", description="Logging level")
     debug: bool = Field(default=False, description="Debug mode")
@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     @classmethod
     def validate_environment(cls, v: str) -> str:
         """Validate environment is one of the allowed values"""
-        allowed = ["development", "staging", "production"]
+        allowed = ["development", "staging", "production", "test"]
         if v not in allowed:
             raise ValueError(f"environment must be one of {allowed}, got {v}")
         return v
@@ -125,6 +125,11 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Check if running in production mode"""
         return self.environment == "production"
+
+    @property
+    def is_test(self) -> bool:
+        """Check if running in test mode"""
+        return self.environment == "test"
 
     def log_config(self):
         """Log configuration (hiding sensitive values)"""
