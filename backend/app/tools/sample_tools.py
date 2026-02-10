@@ -47,8 +47,7 @@ def cancel_subscription(subscription_id: str, reason: str = "") -> Dict[str, Any
         "cancelled_at": datetime.now().isoformat(),
         "refund_amount": round(random.uniform(10, 100), 2),
         "message": (
-            "Subscription cancelled successfully. "
-            "Refund will be processed in 3-5 business days."
+            "Subscription cancelled successfully. " "Refund will be processed in 3-5 business days."
         ),
     }
 

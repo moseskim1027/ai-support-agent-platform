@@ -79,8 +79,7 @@ Answer:"""
             "You will receive an email with instructions.",
             "We offer 24/7 customer support via chat, email, and phone. "
             "Premium members get priority support.",
-            "Shipping is free for orders over $50. "
-            "Standard shipping takes 3-5 business days.",
+            "Shipping is free for orders over $50. " "Standard shipping takes 3-5 business days.",
             "Our AI agent platform supports multiple languages including "
             "English, Spanish, French, German, and Japanese.",
         ]
