@@ -3,11 +3,11 @@ Application configuration management with validation
 Loads and validates environment variables for production-ready deployment
 """
 
-import os
-from typing import Optional, List
+import logging
+from typing import List, Optional
+
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,9 @@ class Settings(BaseSettings):
     """
 
     # Application
-    environment: str = Field(default="development", description="Environment: development, staging, production")
+    environment: str = Field(
+        default="development", description="Environment: development, staging, production"
+    )
     log_level: str = Field(default="info", description="Logging level")
     debug: bool = Field(default=False, description="Debug mode")
 
@@ -32,7 +34,7 @@ class Settings(BaseSettings):
     # Security
     secret_key: str = Field(
         default="dev-secret-key-change-in-production",
-        description="Secret key for JWT and encryption"
+        description="Secret key for JWT and encryption",
     )
     cors_origins: str = Field(default="*", description="Comma-separated CORS origins")
 
@@ -42,26 +44,19 @@ class Settings(BaseSettings):
     # Database
     postgres_url: str = Field(
         default="postgresql://postgres:postgres@postgres:5432/ai_support",
-        description="PostgreSQL connection URL"
+        description="PostgreSQL connection URL",
     )
-    redis_url: str = Field(
-        default="redis://redis:6379/0",
-        description="Redis connection URL"
-    )
+    redis_url: str = Field(default="redis://redis:6379/0", description="Redis connection URL")
 
     # Vector Database
-    qdrant_url: str = Field(
-        default="http://qdrant:6333",
-        description="Qdrant vector database URL"
-    )
+    qdrant_url: str = Field(default="http://qdrant:6333", description="Qdrant vector database URL")
 
     # Agent Configuration
     max_tokens: int = Field(default=2000, description="Max tokens for LLM responses")
     agent_temperature: float = Field(default=0.7, description="LLM temperature")
     rag_top_k: int = Field(default=5, description="Number of RAG results to retrieve")
     embedding_model: str = Field(
-        default="text-embedding-ada-002",
-        description="OpenAI embedding model"
+        default="text-embedding-ada-002", description="OpenAI embedding model"
     )
 
     # Observability
@@ -69,10 +64,7 @@ class Settings(BaseSettings):
     datadog_api_key: Optional[str] = Field(default=None, description="Datadog API key")
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
     @field_validator("environment")
@@ -100,8 +92,7 @@ class Settings(BaseSettings):
         environment = info.data.get("environment", "development")
         if environment == "production" and v == "dev-secret-key-change-in-production":
             raise ValueError(
-                "SECRET_KEY must be changed in production! "
-                "Generate with: openssl rand -hex 32"
+                "SECRET_KEY must be changed in production! " "Generate with: openssl rand -hex 32"
             )
         return v
 
@@ -179,7 +170,7 @@ def setup_logging():
     logging.basicConfig(
         level=settings.log_level.upper(),
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     # Reduce noise from verbose libraries

@@ -1,12 +1,13 @@
 """Main FastAPI application"""
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import logging
 
+from app.api import chat, health
 from app.config import settings
-from app.api import health, chat
 from app.observability.metrics import setup_metrics
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/api/docs" if settings.is_development else None,  # Disable docs in production
     redoc_url="/api/redoc" if settings.is_development else None,
-    debug=settings.debug
+    debug=settings.debug,
 )
 
 # CORS middleware
@@ -76,18 +77,10 @@ async def shutdown_event():
 async def global_exception_handler(request, exc):
     """Global exception handler"""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

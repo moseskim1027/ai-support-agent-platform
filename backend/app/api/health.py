@@ -1,14 +1,16 @@
 """Health check endpoints"""
 
+from datetime import datetime
+
 from fastapi import APIRouter
 from pydantic import BaseModel
-from datetime import datetime
 
 router = APIRouter()
 
 
 class HealthResponse(BaseModel):
     """Health check response model"""
+
     status: str
     timestamp: datetime
     version: str
@@ -22,11 +24,7 @@ async def health_check():
     Returns:
         HealthResponse: Service health status
     """
-    return HealthResponse(
-        status="healthy",
-        timestamp=datetime.utcnow(),
-        version="0.1.0"
-    )
+    return HealthResponse(status="healthy", timestamp=datetime.utcnow(), version="0.1.0")
 
 
 @router.get("/ready")

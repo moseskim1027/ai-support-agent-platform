@@ -1,41 +1,26 @@
 """Metrics and monitoring setup"""
 
+import logging
+
 from fastapi import FastAPI
 from prometheus_client import Counter, Histogram, make_asgi_app
-import logging
 
 logger = logging.getLogger(__name__)
 
 # Define metrics
 request_count = Counter(
-    'http_requests_total',
-    'Total HTTP requests',
-    ['method', 'endpoint', 'status']
+    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"]
 )
 
 request_duration = Histogram(
-    'http_request_duration_seconds',
-    'HTTP request duration in seconds',
-    ['method', 'endpoint']
+    "http_request_duration_seconds", "HTTP request duration in seconds", ["method", "endpoint"]
 )
 
-agent_invocations = Counter(
-    'agent_invocations_total',
-    'Total agent invocations',
-    ['agent_type']
-)
+agent_invocations = Counter("agent_invocations_total", "Total agent invocations", ["agent_type"])
 
-rag_queries = Counter(
-    'rag_queries_total',
-    'Total RAG queries',
-    ['status']
-)
+rag_queries = Counter("rag_queries_total", "Total RAG queries", ["status"])
 
-token_usage = Counter(
-    'llm_tokens_total',
-    'Total LLM tokens used',
-    ['model', 'type']
-)
+token_usage = Counter("llm_tokens_total", "Total LLM tokens used", ["model", "type"])
 
 
 def setup_metrics(app: FastAPI):

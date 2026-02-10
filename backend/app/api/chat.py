@@ -1,10 +1,11 @@
 """Chat API endpoints"""
 
+import logging
+from datetime import datetime
+from typing import List, Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import List, Optional
-from datetime import datetime
-import logging
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 class Message(BaseModel):
     """Chat message model"""
+
     role: str = Field(..., description="Message role: user, assistant, or system")
     content: str = Field(..., description="Message content")
     timestamp: Optional[datetime] = None
@@ -19,13 +21,17 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     """Chat request model"""
+
     message: str = Field(..., description="User message")
     conversation_id: Optional[str] = Field(None, description="Conversation ID for context")
-    history: Optional[List[Message]] = Field(default_factory=list, description="Conversation history")
+    history: Optional[List[Message]] = Field(
+        default_factory=list, description="Conversation history"
+    )
 
 
 class ChatResponse(BaseModel):
     """Chat response model"""
+
     message: str = Field(..., description="Agent response")
     conversation_id: str = Field(..., description="Conversation ID")
     agent_type: str = Field(..., description="Type of agent that handled the request")
@@ -51,14 +57,14 @@ async def chat(request: ChatRequest):
         # For now, return a placeholder response
 
         return ChatResponse(
-            message="Hello! I'm your AI support assistant. I'm currently being set up. Please check back soon!",
+            message=(
+                "Hello! I'm your AI support assistant. "
+                "I'm currently being set up. Please check back soon!"
+            ),
             conversation_id=request.conversation_id or "demo-conv-001",
             agent_type="router",
             sources=[],
-            metadata={
-                "timestamp": datetime.utcnow().isoformat(),
-                "status": "demo"
-            }
+            metadata={"timestamp": datetime.utcnow().isoformat(), "status": "demo"},
         )
 
     except Exception as e:
@@ -78,8 +84,4 @@ async def get_conversation(conversation_id: str):
         dict: Conversation history and metadata
     """
     # TODO: Implement conversation retrieval from database
-    return {
-        "conversation_id": conversation_id,
-        "messages": [],
-        "metadata": {}
-    }
+    return {"conversation_id": conversation_id, "messages": [], "metadata": {}}
