@@ -1,0 +1,76 @@
+Payment and Billing Information
+
+Accepted Payment Methods:
+- Visa, Mastercard, American Express, Discover
+- PayPal and PayPal Credit
+- Apple Pay and Google Pay
+- Gift cards and store credit
+- Affirm (buy now, pay later)
+
+Payment Security:
+- All transactions are encrypted with SSL/TLS
+- We use PCI-DSS compliant payment processors
+- We never store your full credit card number
+- Your payment information is tokenized for security
+
+Pricing:
+- All prices are in USD unless otherwise stated
+- Prices are subject to change without notice
+- Sale prices are valid for the duration specified
+- Taxes are calculated at checkout based on shipping address
+
+Sales Tax:
+- Collected based on your shipping address
+- Rates vary by state and local jurisdiction
+- Tax-exempt organizations must provide documentation
+
+Promotional Codes:
+- Enter codes at checkout in the "Promo Code" field
+- One code per order unless otherwise stated
+- Cannot be combined with other offers typically
+- Codes have expiration dates
+- Some exclusions may apply
+
+Order Confirmation:
+- You'll receive an email confirmation immediately after purchase
+- Check your spam folder if you don't see it
+- Contact us within 24 hours if you notice any errors
+
+Billing Statement:
+- Charges appear as "EXAMPLE COMPANY" on your statement
+- Order number is included in the transaction description
+- If you don't recognize a charge, contact us immediately
+
+Failed Payments:
+- We'll notify you if your payment doesn't go through
+- Common reasons: insufficient funds, expired card, incorrect information
+- Update your payment method and try again
+- Orders are held for 48 hours before being cancelled
+
+Refunds and Credits:
+- Refunds are issued to the original payment method
+- Allow 5-10 business days for refunds to appear
+- Store credit is applied immediately to your account
+- Gift card refunds may be issued as store credit
+
+Invoices:
+- Available in your account under Order History
+- Can be downloaded as PDF
+- Business customers can request detailed invoices with tax ID
+
+Subscription Billing:
+- Recurring charges for subscription services
+- Billed automatically on renewal date
+- Cancel anytime before the next billing cycle
+- Email reminders sent 7 days before renewal
+
+Disputes and Chargebacks:
+- Contact us first before disputing a charge
+- Most issues can be resolved quickly
+- Chargebacks may result in account suspension
+- We work with you to resolve billing concerns
+
+Questions?
+billing@example.com
+1-800-BILLING
+Live chat available 24/7

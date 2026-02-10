@@ -1,0 +1,76 @@
+Frequently Asked Questions & Troubleshooting
+
+Account Issues:
+
+Q: I forgot my password. How do I reset it?
+A: Click "Forgot Password" on the login page, enter your email, and follow the instructions in the reset email we send you.
+
+Q: I'm not receiving your emails. What should I do?
+A: Check your spam/junk folder, add us to your safe senders list, and verify your email address in account settings.
+
+Q: How do I change my email address?
+A: Log into your account, go to Settings > Profile, update your email, and verify the new address.
+
+Ordering Issues:
+
+Q: Can I cancel my order?
+A: Orders can be cancelled within 1 hour of placement. After that, the order may have already been shipped. Contact us immediately.
+
+Q: How do I track my package?
+A: Check your shipping confirmation email for the tracking number, or view it in your account under Order History.
+
+Q: My package is delayed. What should I do?
+A: Check the tracking information first. If it's been more than 2 days past the expected delivery date, contact our support team.
+
+Q: I received the wrong item. What now?
+A: Contact us immediately with photos of the item you received. We'll send you the correct item and provide a prepaid return label.
+
+Product Issues:
+
+Q: My product isn't working. Is it defective?
+A: First, check the troubleshooting section in the product manual. If that doesn't help, contact our technical support team.
+
+Q: How do I clean/maintain my product?
+A: Refer to the care instructions in your product manual. Use only recommended cleaning products.
+
+Q: Where can I find replacement parts?
+A: Visit our Parts & Accessories section or contact support with your model number.
+
+Payment Issues:
+
+Q: Why was my payment declined?
+A: Common reasons include insufficient funds, expired card, incorrect billing address, or bank security holds. Contact your bank if the issue persists.
+
+Q: When will I see my refund?
+A: Refunds are processed within 5-7 business days after we receive your return. Allow 3-5 additional days for it to appear in your account.
+
+Q: Can I use multiple payment methods for one order?
+A: Currently, we only accept one payment method per order, but you can combine it with gift cards.
+
+Technical Issues:
+
+Q: The website isn't working properly. What should I do?
+A: Try clearing your browser cache and cookies, or use a different browser. Contact us if the problem persists.
+
+Q: I can't upload my profile photo.
+A: Ensure the image is in JPG or PNG format and under 5MB. Try a different browser if the issue continues.
+
+Q: The mobile app keeps crashing.
+A: Update to the latest version, restart your device, and reinstall the app if necessary.
+
+Shipping Issues:
+
+Q: Can I change my shipping address after ordering?
+A: If the order hasn't shipped yet, contact us immediately. We can't change addresses for orders already in transit.
+
+Q: What if my package is stolen?
+A: File a police report and contact us. We'll work with the carrier to investigate and help resolve the issue.
+
+Q: Do you ship to P.O. boxes?
+A: Standard shipping is available to P.O. boxes, but expedited shipping is not.
+
+Still Have Questions?
+- Visit our Help Center for more articles
+- Live chat with a support agent (24/7)
+- Email: support@example.com
+- Call: 1-800-SUPPORT (Mon-Fri, 9 AM - 9 PM EST)
