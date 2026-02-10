@@ -1,0 +1,60 @@
+Account Management Guide
+
+Creating an Account:
+- Click "Sign Up" in the top right corner
+- Enter your email address and create a password
+- Verify your email by clicking the link we send you
+- Complete your profile with shipping and billing information
+
+Password Reset:
+- Click "Forgot Password" on the login page
+- Enter your email address
+- Check your email for a reset link (valid for 24 hours)
+- Click the link and enter your new password
+- Your new password must be at least 8 characters long
+
+Updating Account Information:
+- Log into your account
+- Go to Settings > Account > Profile
+- Update your personal information, email, or phone number
+- Click "Save Changes" to apply updates
+
+Managing Addresses:
+- Navigate to Settings > Account > Addresses
+- Add new shipping or billing addresses
+- Set a default address for faster checkout
+- Edit or delete existing addresses
+
+Payment Methods:
+- Go to Settings > Account > Payment Methods
+- Add credit/debit cards or PayPal accounts
+- We securely store payment information for faster checkout
+- Your full card number is never displayed for security
+
+Email Preferences:
+- Manage your email subscriptions in Settings > Notifications
+- Choose which emails you want to receive:
+  * Order confirmations and shipping updates
+  * Promotional offers and discounts
+  * Product recommendations
+  * Newsletter and blog updates
+
+Privacy Settings:
+- Control who can see your profile information
+- Manage data sharing preferences
+- Download your personal data
+- Request account deletion
+
+Two-Factor Authentication:
+- Enable 2FA for added security
+- Use SMS or authenticator app
+- Required for high-value purchases
+
+Deleting Your Account:
+- Go to Settings > Account > Delete Account
+- Review the consequences of deletion
+- Confirm your decision
+- Your data will be permanently deleted within 30 days
+
+Need Help?
+Contact support@example.com or visit our Help Center

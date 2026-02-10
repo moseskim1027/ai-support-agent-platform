@@ -14,11 +14,13 @@ from app.config import settings
 
 class RAGAgent(BaseAgent):
     """
-    RAG Agent retrieves relevant information from knowledge base and generates responses
+    RAG Agent retrieves relevant information from knowledge base
+    and generates responses
     """
 
     RAG_PROMPT = """You are a helpful customer support assistant.
-Answer the user's question based on the provided context from the knowledge base.
+Answer the user's question based on the provided context from the
+knowledge base.
 
 Context from knowledge base:
 {context}
@@ -40,7 +42,7 @@ Answer:"""
             temperature=0.3,
             openai_api_key=settings.openai_api_key,
         )
-        self.embeddings = OpenAIEmbeddings(openai_api_key=settings.openai_api_key)
+        self.embeddings = OpenAIEmbeddings(openai_api_key=settings.openai_api_key)  # noqa: E501
         self.prompt = ChatPromptTemplate.from_template(self.RAG_PROMPT)
 
         # Initialize Qdrant client
@@ -61,7 +63,7 @@ Answer:"""
             if self.collection_name not in collection_names:
                 self.qdrant.create_collection(
                     collection_name=self.collection_name,
-                    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+                    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),  # noqa: E501
                 )
                 self.logger.info(f"Created collection: {self.collection_name}")
 
@@ -71,35 +73,103 @@ Answer:"""
             self.logger.error(f"Error initializing collection: {e}")
 
     def _add_sample_documents(self):
-        """Add sample knowledge base documents"""
-        sample_docs = [
-            "Our return policy allows returns within 30 days of purchase. "
-            "Items must be unused and in original packaging.",
-            "To reset your password, go to Settings > Account > Reset Password. "
-            "You will receive an email with instructions.",
-            "We offer 24/7 customer support via chat, email, and phone. "
-            "Premium members get priority support.",
-            "Shipping is free for orders over $50. " "Standard shipping takes 3-5 business days.",
-            "Our AI agent platform supports multiple languages including "
-            "English, Spanish, French, German, and Japanese.",
-        ]
+        """Load and add documents from data/documents directory"""
+        from pathlib import Path
+
+        # Path to documents directory
+        docs_dir = Path(__file__).parent.parent.parent / "data" / "documents"
+
+        if not docs_dir.exists():
+            self.logger.warning(f"Documents directory not found: {docs_dir}")
+            return
 
         try:
+            documents = []
+            # Load all .txt files from documents directory
+            for file_path in docs_dir.glob("*.txt"):
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read().strip()
+                        if content:
+                            # Split long documents into chunks
+                            # (max 500 chars for better retrieval)
+                            chunks = self._chunk_text(content, max_length=500)
+                            for chunk in chunks:
+                                documents.append(
+                                    {
+                                        "text": chunk,
+                                        "source": file_path.stem,
+                                        "file": file_path.name,
+                                    }
+                                )
+                except Exception as e:
+                    self.logger.error(f"Error reading {file_path}: {e}")
+
+            if not documents:
+                self.logger.warning("No documents found to load")
+                return
+
+            # Create embeddings and upsert to Qdrant
             points = []
-            for idx, doc in enumerate(sample_docs):
-                embedding = self.embeddings.embed_query(doc)
+            for idx, doc in enumerate(documents):
+                embedding = self.embeddings.embed_query(doc["text"])
                 points.append(
                     PointStruct(
                         id=idx,
                         vector=embedding,
-                        payload={"text": doc, "source": "sample_kb"},
+                        payload=doc,
                     )
                 )
 
-            self.qdrant.upsert(collection_name=self.collection_name, points=points)
-            self.logger.info(f"Added {len(sample_docs)} sample documents")
+            self.qdrant.upsert(collection_name=self.collection_name, points=points)  # noqa: E501
+            num_files = len(list(docs_dir.glob("*.txt")))
+            self.logger.info(
+                f"Added {len(documents)} document chunks "
+                f"from {num_files} files"  # noqa: E501
+            )  # noqa: E501
         except Exception as e:
-            self.logger.error(f"Error adding sample documents: {e}")
+            self.logger.error(f"Error adding documents: {e}")
+
+    def _chunk_text(self, text: str, max_length: int = 500) -> List[str]:
+        """Split text into chunks of approximately max_length chars"""
+        # Split by paragraphs first
+        paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+
+        chunks = []
+        current_chunk = ""
+
+        for para in paragraphs:
+            # If paragraph itself is longer than max_length, split it
+            if len(para) > max_length:
+                # If we have a current chunk, save it
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+                    current_chunk = ""
+
+                # Split long paragraph by sentences
+                sentences = para.replace(". ", ".|").split("|")
+                for sentence in sentences:
+                    if len(current_chunk) + len(sentence) < max_length:
+                        current_chunk += sentence + " "
+                    else:
+                        if current_chunk:
+                            chunks.append(current_chunk.strip())
+                        current_chunk = sentence + " "
+            else:
+                # Add paragraph to current chunk if it fits
+                if len(current_chunk) + len(para) < max_length:
+                    current_chunk += para + "\n\n"
+                else:
+                    # Save current chunk and start new one
+                    if current_chunk:
+                        chunks.append(current_chunk.strip())
+                    current_chunk = para + "\n\n"
+
+        # Add remaining chunk
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+
+        return chunks if chunks else [text]
 
     async def retrieve(self, query: str, top_k: int = 3) -> List[str]:
         """
@@ -127,7 +197,7 @@ Answer:"""
             )
 
             # Extract document texts
-            documents = [hit.payload["text"] for hit in results if hit.score > 0.7]
+            documents = [hit.payload["text"] for hit in results if hit.score > 0.7]  # noqa: E501
 
             self.log_execution(
                 "retrieve_documents",
@@ -137,7 +207,7 @@ Answer:"""
             return documents
 
         except Exception as e:
-            self.logger.error(f"Error retrieving documents: {e}", exc_info=True)
+            self.logger.error(f"Error retrieving documents: {e}", exc_info=True)  # noqa: E501
             return []
 
     async def run(self, state: ConversationState) -> ConversationState:
@@ -153,7 +223,10 @@ Answer:"""
         self.log_execution("rag_agent_start", {"intent": state.intent})
 
         # Get last user message
-        user_message = next((msg for msg in reversed(state.messages) if msg.role == "user"), None)
+        user_message = next(
+            (msg for msg in reversed(state.messages) if msg.role == "user"),
+            None,
+        )
 
         if not user_message:
             state.response = "I'm sorry, I didn't receive a question."
@@ -173,7 +246,9 @@ Answer:"""
             )
 
             response = await self.llm.ainvoke(
-                self.prompt.format_messages(context=context, question=user_message.content)
+                self.prompt.format_messages(
+                    context=context, question=user_message.content
+                )  # noqa: E501
             )
 
             state.response = response.content
@@ -184,18 +259,27 @@ Answer:"""
                 Message(
                     role="assistant",
                     content=response.content,
-                    metadata={"agent": "rag", "num_docs_retrieved": len(documents)},
+                    metadata={
+                        "agent": "rag",
+                        "num_docs_retrieved": len(documents),
+                    },
                 )
             )
 
             self.log_execution(
                 "rag_response_generated",
-                {"response_length": len(response.content), "docs_used": len(documents)},
+                {
+                    "response_length": len(response.content),
+                    "docs_used": len(documents),
+                },
             )
 
         except Exception as e:
-            self.logger.error(f"Error generating RAG response: {e}", exc_info=True)
-            state.response = "I apologize, but I encountered an error processing your request."
+            self.logger.error(f"Error generating RAG response: {e}", exc_info=True)  # noqa: E501
+            state.response = (
+                "I apologize, but I encountered an error "
+                "processing your request."  # noqa: E501
+            )  # noqa: E501
             state.next_step = "end"
 
         return state

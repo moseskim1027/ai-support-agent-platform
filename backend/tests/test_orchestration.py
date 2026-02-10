@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.agents.state import Message
 from app.orchestration.workflow import AgentOrchestrator
 
 
@@ -28,14 +27,16 @@ async def test_orchestrator_initialization():
 async def test_orchestrator_knowledge_flow():
     """Test complete workflow for knowledge questions"""
     with patch.object(AgentOrchestrator, "_build_workflow") as mock_build:
-        mock_state = MagicMock()
-        mock_state.response = "Our return policy allows returns within 30 days."
-        mock_state.intent = "knowledge"
-        mock_state.current_agent = "rag"
-        mock_state.messages = [Message(role="user", content="What is your return policy?")]
-        mock_state.tool_calls = []
-        mock_state.retrieved_docs = ["doc1"]
-        mock_state.metadata = {}
+        # Return dict (not MagicMock) - LangGraph works with dicts
+        mock_state = {
+            "response": "Our return policy allows returns within 30 days.",
+            "intent": "knowledge",
+            "current_agent": "rag",
+            "messages": [{"role": "user", "content": "What is your return policy?"}],  # noqa: E501
+            "tool_calls": [],
+            "retrieved_docs": ["doc1"],
+            "metadata": {},
+        }
 
         mock_workflow = MagicMock()
         mock_workflow.ainvoke = AsyncMock(return_value=mock_state)
@@ -52,14 +53,16 @@ async def test_orchestrator_knowledge_flow():
 async def test_orchestrator_action_flow():
     """Test complete workflow for action requests"""
     with patch.object(AgentOrchestrator, "_build_workflow") as mock_build:
-        mock_state = MagicMock()
-        mock_state.response = "Your order has been shipped."
-        mock_state.intent = "action"
-        mock_state.current_agent = "tool"
-        mock_state.messages = [Message(role="user", content="Check order 12345")]
-        mock_state.tool_calls = [{"tool": "get_order_status"}]
-        mock_state.retrieved_docs = []
-        mock_state.metadata = {}
+        # Return dict (not MagicMock) - LangGraph works with dicts
+        mock_state = {
+            "response": "Your order has been shipped.",
+            "intent": "action",
+            "current_agent": "tool",
+            "messages": [{"role": "user", "content": "Check order 12345"}],
+            "tool_calls": [{"tool": "get_order_status"}],
+            "retrieved_docs": [],
+            "metadata": {},
+        }
 
         mock_workflow = MagicMock()
         mock_workflow.ainvoke = AsyncMock(return_value=mock_state)
@@ -76,14 +79,16 @@ async def test_orchestrator_action_flow():
 async def test_orchestrator_conversation_flow():
     """Test complete workflow for conversation"""
     with patch.object(AgentOrchestrator, "_build_workflow") as mock_build:
-        mock_state = MagicMock()
-        mock_state.response = "Hello! How can I help you?"
-        mock_state.intent = "conversation"
-        mock_state.current_agent = "responder"
-        mock_state.messages = [Message(role="user", content="Hello!")]
-        mock_state.tool_calls = []
-        mock_state.retrieved_docs = []
-        mock_state.metadata = {}
+        # Return dict (not MagicMock) - LangGraph works with dicts
+        mock_state = {
+            "response": "Hello! How can I help you?",
+            "intent": "conversation",
+            "current_agent": "responder",
+            "messages": [{"role": "user", "content": "Hello!"}],
+            "tool_calls": [],
+            "retrieved_docs": [],
+            "metadata": {},
+        }
 
         mock_workflow = MagicMock()
         mock_workflow.ainvoke = AsyncMock(return_value=mock_state)
