@@ -162,7 +162,7 @@ class Settings(BaseSettings):
 
 # Global settings instance
 try:
-    settings = Settings()
+    settings = Settings()  # type: ignore[call-arg]
 except Exception as e:
     logger.error(f"Failed to load configuration: {e}")
     logger.error("Please check your .env file and environment variables")
