@@ -305,9 +305,7 @@ class TestRAGIntegration:
 
             mock_orchestrator.process = mock_process
 
-            response = client.post(
-                "/api/chat", json={"message": "Tell me about shipping options"}
-            )
+            response = client.post("/api/chat", json={"message": "Tell me about shipping options"})
 
             assert response.status_code == 200
             data = response.json()

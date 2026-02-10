@@ -94,7 +94,11 @@ Answer:"""
                             chunks = self._chunk_text(content, max_length=500)
                             for chunk in chunks:
                                 documents.append(
-                                    {"text": chunk, "source": file_path.stem, "file": file_path.name}
+                                    {
+                                        "text": chunk,
+                                        "source": file_path.stem,
+                                        "file": file_path.name,
+                                    }
                                 )
                 except Exception as e:
                     self.logger.error(f"Error reading {file_path}: {e}")
