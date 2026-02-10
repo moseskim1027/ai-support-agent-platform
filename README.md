@@ -374,13 +374,41 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ### Run Tests
 
+**Unit and Integration Tests:**
+
 ```bash
-# Run all tests
+# Run all tests (excluding E2E)
 make test
 
 # Run with coverage
 make test-cov
+
+# Run specific test file
+pytest backend/tests/test_api.py -v
 ```
+
+**End-to-End (E2E) Tests:**
+
+E2E tests use real OpenAI API and Qdrant services. They are marked with `@pytest.mark.e2e` and automatically skipped in CI/CD.
+
+```bash
+# Prerequisites: Ensure services are running and .env has valid OPENAI_API_KEY
+docker-compose up -d
+
+# Run E2E tests locally
+cd backend
+pytest tests/test_e2e.py -v -m e2e
+
+# Run all tests EXCEPT E2E (for CI/CD)
+pytest tests/ -v -m "not e2e"
+```
+
+**E2E Test Coverage:**
+- RAG functionality with real document retrieval
+- Multi-turn conversation flows with context
+- Edge cases (empty messages, special characters)
+- Qdrant integration and retrieval accuracy
+- Agent routing (RAG, Tool, Responder)
 
 ### View Logs
 
@@ -438,18 +466,33 @@ ai-support-agent-platform/
 │   │   │   ├── chat.py      # Chat endpoint
 │   │   │   └── health.py    # Health checks
 │   │   ├── observability/   # Metrics and monitoring
+│   │   ├── rag/             # RAG components
+│   │   │   ├── loader.py    # Document loading
+│   │   │   ├── vector_store.py  # Qdrant integration
+│   │   │   └── retriever.py # Document retrieval
 │   │   └── config.py        # Application configuration
 │   ├── tests/               # Test suite
-│   │   ├── test_agents.py
-│   │   ├── test_api.py
-│   │   └── test_orchestration.py
+│   │   ├── conftest.py      # Test fixtures
+│   │   ├── test_agents.py   # Agent unit tests
+│   │   ├── test_api.py      # API endpoint tests
+│   │   ├── test_orchestration.py  # Workflow tests
+│   │   ├── test_rag.py      # RAG pipeline tests
+│   │   ├── test_health.py   # Health check tests
+│   │   └── test_e2e.py      # E2E tests (requires real services)
 │   ├── Dockerfile
+│   ├── pyproject.toml       # Test configuration
 │   └── requirements.txt
 ├── infrastructure/
 │   ├── prometheus.yml       # Prometheus config
 │   └── k8s/                 # Kubernetes manifests
 │       ├── base/            # Base resources
 │       └── overlays/        # Environment-specific configs
+├── .github/
+│   └── workflows/           # CI/CD pipelines
+│       ├── ci.yml           # Continuous Integration
+│       ├── cd-staging.yml   # Deploy to staging
+│       ├── cd-production.yml  # Deploy to production
+│       └── pr-checks.yml    # Pull request checks
 ├── docker-compose.yml
 ├── Makefile
 └── README.md
