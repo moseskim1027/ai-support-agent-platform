@@ -1,8 +1,10 @@
 # AI Customer Support Agent Platform
 
-[![CI](https://github.com/moseskim1027/ai-support-agent-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/moseskim1027/ai-support-agent-platform/actions/workflows/ci.yml)
-[![CD Staging](https://github.com/moseskim1027/ai-support-agent-platform/actions/workflows/cd-staging.yml/badge.svg)](https://github.com/moseskim1027/ai-support-agent-platform/actions/workflows/cd-staging.yml)
-[![CD Production](https://github.com/moseskim1027/ai-support-agent-platform/actions/workflows/cd-production.yml/badge.svg)](https://github.com/moseskim1027/ai-support-agent-platform/actions/workflows/cd-production.yml)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg)](https://fastapi.tiangolo.com)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Docker](https://img.shields.io/badge/docker-enabled-blue.svg)](https://www.docker.com/)
+[![CI](https://github.com/moseskim1027/ai-support-agent-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/moseskim1027/ai-support-agent-platform/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A production-ready, multi-agent customer support platform demonstrating advanced AI agent orchestration, RAG pipelines, and real-time conversational interfaces.
