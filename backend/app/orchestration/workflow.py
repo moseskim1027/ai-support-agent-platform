@@ -63,25 +63,25 @@ class AgentOrchestrator:
 
     async def _router_node(self, state: dict) -> dict:
         """Router node"""
-        state_obj = ConversationState(**state)
+        state_obj = ConversationState.model_validate(state)
         updated_state = await self.router.run(state_obj)
         return updated_state.model_dump()
 
     async def _rag_node(self, state: dict) -> dict:
         """RAG agent node"""
-        state_obj = ConversationState(**state)
+        state_obj = ConversationState.model_validate(state)
         updated_state = await self.rag_agent.run(state_obj)
         return updated_state.model_dump()
 
     async def _tool_node(self, state: dict) -> dict:
         """Tool agent node"""
-        state_obj = ConversationState(**state)
+        state_obj = ConversationState.model_validate(state)
         updated_state = await self.tool_agent.run(state_obj)
         return updated_state.model_dump()
 
     async def _respond_node(self, state: dict) -> dict:
         """Responder agent node"""
-        state_obj = ConversationState(**state)
+        state_obj = ConversationState.model_validate(state)
         updated_state = await self.responder.run(state_obj)
         return updated_state.model_dump()
 
