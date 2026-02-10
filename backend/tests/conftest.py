@@ -3,6 +3,7 @@
 import os
 
 import pytest
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -23,3 +24,11 @@ def setup_test_environment():
 
     # Cleanup after tests (optional)
     # Could remove env vars here if needed
+
+
+@pytest.fixture
+def client():
+    """Create a test client for the FastAPI app"""
+    from app.main import app
+
+    return TestClient(app)
