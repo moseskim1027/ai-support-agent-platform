@@ -12,6 +12,9 @@ const ChatInterface = () => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Track if we're in chat mode for browser history
+  const [inChatMode, setInChatMode] = useState(false);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -19,6 +22,33 @@ const ChatInterface = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle browser back button
+  useEffect(() => {
+    const handlePopState = () => {
+      if (inChatMode) {
+        handleBackToWelcome();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [inChatMode]);
+
+  // Push history state when entering chat mode
+  useEffect(() => {
+    if (messages.length > 0 && !inChatMode) {
+      setInChatMode(true);
+      window.history.pushState({ chat: true }, '', '');
+    }
+  }, [messages.length]);
+
+  const handleBackToWelcome = () => {
+    setMessages([]);
+    setConversationId(null);
+    setError(null);
+    setInChatMode(false);
+  };
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -68,7 +98,19 @@ const ChatInterface = () => {
       {messages.length === 0 ? (
         <WelcomeScreen onSamplePrompt={handleSamplePrompt} />
       ) : (
-        <MessageList messages={messages} isLoading={isLoading} />
+        <>
+          <button
+            className="back-button"
+            onClick={() => {
+              handleBackToWelcome();
+              window.history.back();
+            }}
+            aria-label="Back to welcome screen"
+          >
+            ← Back
+          </button>
+          <MessageList messages={messages} isLoading={isLoading} />
+        </>
       )}
       {error && <div className="error-message">{error}</div>}
       <div ref={messagesEndRef} />

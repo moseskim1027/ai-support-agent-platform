@@ -5,19 +5,19 @@ interface WelcomeScreenProps {
 const WelcomeScreen = ({ onSamplePrompt }: WelcomeScreenProps) => {
   const samplePrompts = [
     {
-      category: 'Knowledge',
+      category: 'Product Information',
       prompt: 'What is your return policy?',
-      description: 'Ask about company policies and information',
+      description: 'Learn about returns, shipping, and warranties',
     },
     {
-      category: 'Actions',
-      prompt: 'Check order status for order 12345',
-      description: 'Perform actions like checking orders or managing subscriptions',
+      category: 'Account & Billing',
+      prompt: 'How do I reset my password?',
+      description: 'Get help with account and payment issues',
     },
     {
-      category: 'Conversation',
-      prompt: 'Hello! How can you help me?',
-      description: 'Have a friendly conversation and get assistance',
+      category: 'General Help',
+      prompt: 'Hello! What can you help me with?',
+      description: 'Ask anything - I\'ll route you to the right specialist',
     },
   ];
 

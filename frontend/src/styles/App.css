@@ -210,6 +210,30 @@ body {
   text-align: center;
 }
 
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.back-button:hover {
+  background-color: var(--surface);
+  color: var(--primary-color);
+}
+
 .input-container {
   padding: 1.5rem 2rem;
   border-top: 1px solid var(--border);
