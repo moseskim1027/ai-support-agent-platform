@@ -61,21 +61,25 @@ class AgentOrchestrator:
 
         return workflow.compile()
 
-    async def _router_node(self, state: ConversationState) -> ConversationState:
+    async def _router_node(self, state: ConversationState) -> dict:
         """Router node"""
-        return await self.router.run(state)
+        updated_state = await self.router.run(state)
+        return updated_state.model_dump()
 
-    async def _rag_node(self, state: ConversationState) -> ConversationState:
+    async def _rag_node(self, state: ConversationState) -> dict:
         """RAG agent node"""
-        return await self.rag_agent.run(state)
+        updated_state = await self.rag_agent.run(state)
+        return updated_state.model_dump()
 
-    async def _tool_node(self, state: ConversationState) -> ConversationState:
+    async def _tool_node(self, state: ConversationState) -> dict:
         """Tool agent node"""
-        return await self.tool_agent.run(state)
+        updated_state = await self.tool_agent.run(state)
+        return updated_state.model_dump()
 
-    async def _respond_node(self, state: ConversationState) -> ConversationState:
+    async def _respond_node(self, state: ConversationState) -> dict:
         """Responder agent node"""
-        return await self.responder.run(state)
+        updated_state = await self.responder.run(state)
+        return updated_state.model_dump()
 
     def _route_decision(self, state: ConversationState) -> str:
         """Determine which agent to route to based on intent"""
