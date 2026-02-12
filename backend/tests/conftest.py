@@ -13,7 +13,7 @@ def setup_test_environment():
     os.environ["ENVIRONMENT"] = "test"
 
     # Set required API keys with dummy values
-    os.environ["OPENAI_API_KEY"] = "sk-test-key-for-testing-only"
+    os.environ["GEMINI_API_KEY"] = "AIza-test-key-for-testing-only"
 
     # Set optional service URLs to avoid connection attempts
     os.environ["POSTGRES_URL"] = "postgresql://test:test@localhost:5432/test_db"  # noqa: E501

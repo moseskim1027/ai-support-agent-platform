@@ -98,8 +98,14 @@ class Settings(BaseSettings):
 
     @field_validator("gemini_api_key")
     @classmethod
-    def validate_gemini_api_key(cls, v: str) -> str:
+    def validate_gemini_api_key(cls, v: str, info) -> str:
         """Validate Google Gemini API key format"""
+        environment = info.data.get("environment", "development")
+
+        # Skip validation in test environment
+        if environment == "test":
+            return v
+
         if not v or v == "your-gemini-api-key-here" or v == "your_gemini_api_key_here":
             raise ValueError(
                 "GEMINI_API_KEY is required! "
