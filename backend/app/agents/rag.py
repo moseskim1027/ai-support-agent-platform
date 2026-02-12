@@ -38,15 +38,17 @@ Answer:"""
 
     def __init__(self):
         super().__init__("rag")
-        # Using Gemini 2.5 Flash (free tier) for RAG responses
+        # Using Gemini 2.5 Flash Lite (free tier) for RAG responses
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-flash-lite",
             temperature=0.3,
             google_api_key=settings.gemini_api_key,
         )
-        # Using text-embedding-004 (free tier) for document embeddings
+        # Using gemini-embedding-001 (free tier) for document embeddings
+        # Default is 3072 dimensions, but we use 768 for storage efficiency
+        # Gemini supports flexible dimensions: 768, 1536, or 3072
         self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
+            model="models/gemini-embedding-001",
             google_api_key=settings.gemini_api_key,
         )
         self.prompt = ChatPromptTemplate.from_template(self.RAG_PROMPT)
@@ -79,8 +81,8 @@ Answer:"""
                 self.qdrant.create_collection(
                     collection_name=self.collection_name,
                     vectors_config=VectorParams(
-                        size=768, distance=Distance.COSINE
-                    ),  # Gemini embedding-001
+                        size=3072, distance=Distance.COSINE
+                    ),  # Gemini gemini-embedding-001 (default: 3072 dims)
                 )
                 self.logger.info(f"Created collection: {self.collection_name}")
 

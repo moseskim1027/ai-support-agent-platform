@@ -1,0 +1,62 @@
+Payment Methods and Billing
+
+Accepted Payment Methods
+
+We accept the following payment methods:
+
+Credit and Debit Cards:
+- Visa
+- Mastercard
+- American Express
+- Discover
+- All major debit cards with Visa/Mastercard logo
+
+Digital Wallets:
+- PayPal
+- Apple Pay
+- Google Pay
+- Shop Pay
+
+Other Payment Options:
+- Gift cards and store credit
+- Buy Now, Pay Later services (Afterpay, Klarna)
+- Bank transfers for orders over $1000
+
+Payment Security:
+- All transactions are encrypted with SSL technology
+- We never store your complete credit card information
+- PCI-DSS compliant payment processing
+- 3D Secure authentication for added security
+
+Billing Information:
+- Your billing address must match your payment method
+- We verify billing information for fraud prevention
+- International orders may require additional verification
+
+Gift Cards:
+- Available in denominations from $25 to $500
+- Never expire and have no fees
+- Can be used online or in store
+- Check balance at any time in your account
+
+Store Credit:
+- Issued for returns or as promotional credits
+- Applied automatically at checkout
+- Can be combined with other payment methods
+- View your store credit balance in "Account Settings"
+
+Payment Issues:
+If your payment is declined:
+1. Verify your billing information is correct
+2. Check with your bank for any restrictions
+3. Ensure you have sufficient funds
+4. Try a different payment method
+5. Contact our support team for assistance
+
+Refunds and Chargebacks:
+- Refunds are issued to the original payment method
+- Allow 5-7 business days for refunds to appear
+- Chargebacks may result in account suspension
+- Contact us before filing a chargeback
+
+For payment questions, email billing@example.com or call 1-800-BILLING.
