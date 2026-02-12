@@ -3,7 +3,6 @@
 import uuid
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -35,9 +34,8 @@ def test_ready_endpoint():
     assert response.json() == {"status": "ready"}
 
 
-@pytest.mark.asyncio
 @patch("app.api.chat.orchestrator")
-async def test_chat_endpoint_success(mock_orchestrator):
+def test_chat_endpoint_success(mock_orchestrator):
     """Test chat endpoint with successful response"""
     # Mock orchestrator response
     mock_orchestrator.process = AsyncMock(
@@ -59,9 +57,8 @@ async def test_chat_endpoint_success(mock_orchestrator):
     assert "metadata" in data
 
 
-@pytest.mark.asyncio
 @patch("app.api.chat.orchestrator")
-async def test_chat_endpoint_with_conversation_id(mock_orchestrator):
+def test_chat_endpoint_with_conversation_id(mock_orchestrator):
     """Test chat endpoint with conversation ID"""
     test_uuid = str(uuid.uuid4())
     mock_orchestrator.process = AsyncMock(
@@ -81,9 +78,8 @@ async def test_chat_endpoint_with_conversation_id(mock_orchestrator):
     assert data["conversation_id"] == test_uuid
 
 
-@pytest.mark.asyncio
 @patch("app.api.chat.orchestrator")
-async def test_chat_endpoint_knowledge_intent(mock_orchestrator):
+def test_chat_endpoint_knowledge_intent(mock_orchestrator):
     """Test chat endpoint with knowledge question"""
     mock_orchestrator.process = AsyncMock(
         return_value={
@@ -103,9 +99,8 @@ async def test_chat_endpoint_knowledge_intent(mock_orchestrator):
     assert data["metadata"]["docs_retrieved"] == 3
 
 
-@pytest.mark.asyncio
 @patch("app.api.chat.orchestrator")
-async def test_chat_endpoint_action_intent(mock_orchestrator):
+def test_chat_endpoint_action_intent(mock_orchestrator):
     """Test chat endpoint with action request"""
     mock_orchestrator.process = AsyncMock(
         return_value={
@@ -137,9 +132,8 @@ def test_chat_endpoint_missing_message():
     assert response.status_code == 422  # Validation error
 
 
-@pytest.mark.asyncio
 @patch("app.api.chat.orchestrator")
-async def test_chat_endpoint_error_handling(mock_orchestrator):
+def test_chat_endpoint_error_handling(mock_orchestrator):
     """Test chat endpoint handles orchestrator errors"""
     mock_orchestrator.process = AsyncMock(
         return_value={
