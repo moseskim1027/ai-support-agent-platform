@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [develop, staging, main]  # Run CI on all PRs for validation
 
+# Cancel in-progress runs when new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: Lint Code
