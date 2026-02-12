@@ -29,9 +29,14 @@ def setup_test_environment():
     # Could remove env vars here if needed
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def client():
-    """Create a test client for the FastAPI app"""
+    """Create a test client for the FastAPI app
+
+    Function scope ensures each test gets a fresh client instance
+    to avoid state pollution between tests.
+    """
     from app.main import app
 
-    return TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
