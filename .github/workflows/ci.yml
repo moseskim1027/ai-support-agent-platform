@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [develop, staging, main]
+    branches: [develop]  # Only run CI on develop pushes
   pull_request:
-    branches: [develop, staging, main]
+    branches: [develop, staging, main]  # Run CI on all PRs for validation
 
 jobs:
   lint:
