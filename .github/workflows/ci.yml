@@ -95,6 +95,7 @@ jobs:
         env:
           POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/test_db
           GEMINI_API_KEY: AIza-test-key-for-ci
+          PYTHONPATH: /home/runner/work/ai-support-agent-platform/ai-support-agent-platform/backend
         run: |
           cd backend
           alembic upgrade head
