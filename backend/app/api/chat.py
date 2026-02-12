@@ -53,7 +53,12 @@ class ChatResponse(BaseModel):
 
 @router.post("/chat", response_model=ChatResponse)
 @limiter.limit("20/minute")
-async def chat(request: Request, response: Response, chat_request: ChatRequest, db: AsyncSession = Depends(get_db)):
+async def chat(
+    request: Request,
+    response: Response,
+    chat_request: ChatRequest,
+    db: AsyncSession = Depends(get_db),
+):
     """
     Chat endpoint for agent interactions
 

@@ -78,7 +78,9 @@ Answer:"""
             if self.collection_name not in collection_names:
                 self.qdrant.create_collection(
                     collection_name=self.collection_name,
-                    vectors_config=VectorParams(size=768, distance=Distance.COSINE),  # Gemini embedding-001
+                    vectors_config=VectorParams(
+                        size=768, distance=Distance.COSINE
+                    ),  # Gemini embedding-001
                 )
                 self.logger.info(f"Created collection: {self.collection_name}")
 
