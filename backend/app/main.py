@@ -5,9 +5,12 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
-from app.api import chat, health
+from app.api import auth, chat, health, websocket
 from app.config import settings
+from app.middleware import limiter
 from app.observability.metrics import setup_metrics
 
 logger = logging.getLogger(__name__)
@@ -21,6 +24,10 @@ app = FastAPI(
     redoc_url="/api/redoc" if not settings.is_production else None,
     debug=settings.debug,
 )
+
+# Add rate limiter state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS middleware
 app.add_middleware(
@@ -36,7 +43,9 @@ setup_metrics(app)
 
 # Include routers
 app.include_router(health.router, prefix="/api", tags=["health"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(chat.router, prefix="/api", tags=["chat"])
+app.include_router(websocket.router, prefix="/api", tags=["websocket"])
 
 
 @app.on_event("startup")

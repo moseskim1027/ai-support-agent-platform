@@ -38,11 +38,7 @@ const ChatInput = ({ onSendMessage, isLoading, disabled }: ChatInputProps) => {
             disabled={disabled}
           />
         </div>
-        <button
-          type="submit"
-          className="send-button"
-          disabled={disabled || !input.trim()}
-        >
+        <button type="submit" className="send-button" disabled={disabled || !input.trim()}>
           {isLoading ? 'Sending...' : 'Send'}
         </button>
       </form>

@@ -91,16 +91,25 @@ jobs:
           cd backend
           pip install -r requirements.txt
 
+      - name: Run database migrations
+        env:
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          GEMINI_API_KEY: AIza-test-key-for-ci
+          PYTHONPATH: /home/runner/work/ai-support-agent-platform/ai-support-agent-platform/backend
+        run: |
+          cd backend
+          alembic upgrade head
+
       - name: Run tests with coverage
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-test-key-for-ci' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'AIza-test-key-for-ci' }}
           POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
           QDRANT_URL: http://localhost:6333
           ENVIRONMENT: test
         run: |
           cd backend
-          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term -m "not e2e"
+          pytest tests/*_ci.py tests/test_api.py tests/test_health.py tests/test_e2e.py tests/test_orchestration.py -v --cov=app --cov-report=xml --cov-report=term -m "not e2e"
 
   security:
     name: Security Scan

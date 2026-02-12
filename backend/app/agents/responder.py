@@ -1,7 +1,7 @@
 """Response Agent for general conversation"""
 
 from langchain.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.agents.base import BaseAgent
 from app.agents.state import ConversationState, Message
@@ -31,10 +31,11 @@ Response:"""
 
     def __init__(self):
         super().__init__("responder")
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
+        # Using Gemini 2.5 Flash Lite (free tier) for conversational responses
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash-lite",
             temperature=0.7,
-            openai_api_key=settings.openai_api_key,
+            google_api_key=settings.gemini_api_key,
         )
         self.prompt = ChatPromptTemplate.from_template(self.CONVERSATION_PROMPT)
 

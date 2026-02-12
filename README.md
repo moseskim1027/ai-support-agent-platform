@@ -137,10 +137,59 @@ Response:
 ## Features
 
 - **Multi-Agent Orchestration**: Router, RAG, Tool, and Supervisor agents using LangGraph
-- **Advanced RAG Pipeline**: Hybrid search with Qdrant vector database
-- **Real-time Chat**: FastAPI backend with WebSocket support
+- **Advanced RAG Pipeline**: Hybrid search combining dense (vector) and sparse (BM25) retrieval with Reciprocal Rank Fusion
+- **Real-time Chat**: FastAPI REST API and WebSocket support for streaming responses
+- **Conversation Persistence**: PostgreSQL-backed conversation history with full CRUD operations
+- **Authentication & Security**: JWT-based authentication with user registration and login
+- **Rate Limiting**: Intelligent rate limiting per user/IP with Redis-backed storage
 - **Observability**: Prometheus metrics and Grafana dashboards
-- **Production-Ready**: Docker containerization, health checks, and CI/CD
+- **Production-Ready**: Docker containerization, health checks, database migrations, and CI/CD
+
+## Feature Details
+
+### Conversation History Persistence
+
+All conversations are automatically persisted to PostgreSQL with:
+- Automatic conversation creation and tracking
+- Full message history storage with metadata
+- Agent type, intent, and sources tracking per message
+- Conversation retrieval API for loading past conversations
+- Database migrations with Alembic for schema management
+
+### Advanced RAG with Hybrid Search
+
+The RAG system now uses hybrid search combining:
+- **Dense Search**: Semantic similarity using OpenAI embeddings (1536-dimensional vectors)
+- **Sparse Search**: Keyword matching using BM25 algorithm
+- **Reciprocal Rank Fusion (RRF)**: Intelligent fusion of results from both methods
+- Configurable weights and fallback strategies for optimal retrieval
+
+### WebSocket Streaming
+
+Real-time streaming chat via WebSocket:
+- Bi-directional communication for live updates
+- Chunked response streaming for better UX
+- Connection management with auto-reconnect
+- Status updates (processing, complete, error)
+- Conversation persistence integrated
+
+### JWT Authentication
+
+Production-ready authentication system:
+- User registration with email validation
+- Secure password hashing with bcrypt
+- JWT token-based authentication
+- Protected routes with user context
+- User profile endpoints
+
+### Rate Limiting
+
+Intelligent request throttling:
+- Per-user rate limiting (when authenticated)
+- Per-IP rate limiting (for anonymous requests)
+- Redis-backed distributed rate limiting
+- Configurable limits per environment
+- Graceful error responses with retry headers
 
 ## Tech Stack
 
@@ -190,6 +239,8 @@ cp .env.example .env
 # 4. Start all services (frontend + backend + databases)
 docker-compose up -d
 
+# Note: Database migrations run automatically on backend startup
+
 # 5. View logs
 docker-compose logs -f frontend backend
 ```
@@ -223,11 +274,26 @@ cp .env.example .env
 # 5. Start services (requires Docker for databases)
 docker-compose up -d postgres redis qdrant
 
-# 6. Run backend server
+# 6. Run database migrations
+alembic upgrade head
+
+# 7. Run backend server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Backend will be available at http://localhost:8000
+
+**Database Migrations:**
+```bash
+# Create a new migration after model changes
+alembic revision --autogenerate -m "description of changes"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback one migration
+alembic downgrade -1
+```
 
 **Frontend Only:**
 
@@ -266,6 +332,26 @@ cd frontend
 yarn dev
 ```
 
+### Database Setup
+
+The application uses PostgreSQL with Alembic for migrations:
+
+```bash
+# Run migrations (if using Docker Compose, this happens automatically)
+cd backend
+alembic upgrade head
+
+# Create a new migration (after model changes)
+alembic revision --autogenerate -m "description"
+
+# Rollback last migration
+alembic downgrade -1
+```
+
+Current migrations:
+- `001`: Initial conversation tables (conversations, conversation_messages)
+- `002`: User authentication tables (users)
+
 ### Testing the Application
 
 **Web Interface:**
@@ -282,20 +368,72 @@ yarn dev
 # Health check
 curl http://localhost:8000/api/health
 
-# Chat with knowledge question (RAG agent)
+# Register a new user
+curl -X POST http://localhost:8000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "username": "testuser",
+    "password": "securepassword123",
+    "full_name": "Test User"
+  }'
+
+# Login (returns JWT token)
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123"
+  }'
+
+# Chat with knowledge question (RAG agent with hybrid search)
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "What is your return policy?"}'
 
-# Chat with action request (Tool agent)
+# Continue conversation (use conversation_id from previous response)
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Check order status for order 12345"}'
+  -d '{
+    "message": "How long does it take?",
+    "conversation_id": "your-conversation-id-here"
+  }'
 
-# Chat with greeting (Responder agent)
+# Get conversation history
+curl http://localhost:8000/api/conversations/{conversation_id}
+
+# Chat with authentication (for personalized features)
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{"message": "Hello!"}'
+
+# Get current user info
+curl http://localhost:8000/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**WebSocket Testing:**
+
+```javascript
+// Connect to WebSocket
+const ws = new WebSocket('ws://localhost:8000/api/ws/chat');
+
+// Listen for messages
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Received:', data);
+};
+
+// Send a message
+ws.send(JSON.stringify({
+  type: 'message',
+  message: 'What is your return policy?',
+  conversation_id: 'optional-conversation-id'
+}));
+
+// Ping to keep connection alive
+ws.send(JSON.stringify({ type: 'ping' }));
 ```
 
 ## Development
@@ -454,23 +592,37 @@ ai-support-agent-platform/
 │   │   ├── agents/          # Agent implementations
 │   │   │   ├── base.py      # Base agent class
 │   │   │   ├── router.py    # Intent classification
-│   │   │   ├── rag.py       # RAG with Qdrant
+│   │   │   ├── rag.py       # RAG with hybrid search
 │   │   │   ├── tool.py      # Function calling
-│   │   │   └── responder.py # Conversation handling
+│   │   │   ├── responder.py # Conversation handling
+│   │   │   └── state.py     # State management
 │   │   ├── orchestration/   # LangGraph workflows
 │   │   │   └── workflow.py  # Multi-agent orchestration
 │   │   ├── tools/           # Function calling tools
 │   │   │   ├── registry.py  # Tool registry
 │   │   │   └── sample_tools.py  # Sample implementations
 │   │   ├── api/             # FastAPI routes
-│   │   │   ├── chat.py      # Chat endpoint
+│   │   │   ├── chat.py      # Chat REST endpoint
+│   │   │   ├── websocket.py # WebSocket streaming
+│   │   │   ├── auth.py      # Authentication endpoints
 │   │   │   └── health.py    # Health checks
+│   │   ├── auth/            # Authentication & authorization
+│   │   │   ├── utils.py     # JWT and password utilities
+│   │   │   └── dependencies.py  # Auth dependencies
+│   │   ├── database/        # Database layer
+│   │   │   ├── models.py    # SQLAlchemy models
+│   │   │   ├── session.py   # Database session
+│   │   │   └── repositories.py  # Data access layer
+│   │   ├── middleware/      # Middleware
+│   │   │   └── rate_limit.py    # Rate limiting
 │   │   ├── observability/   # Metrics and monitoring
 │   │   ├── rag/             # RAG components
-│   │   │   ├── loader.py    # Document loading
-│   │   │   ├── vector_store.py  # Qdrant integration
-│   │   │   └── retriever.py # Document retrieval
-│   │   └── config.py        # Application configuration
+│   │   │   └── hybrid_retriever.py  # Hybrid search (dense + sparse)
+│   │   ├── config.py        # Application configuration
+│   │   └── main.py          # FastAPI application
+│   ├── alembic/             # Database migrations
+│   │   ├── versions/        # Migration files
+│   │   └── env.py           # Alembic environment
 │   ├── tests/               # Test suite
 │   │   ├── conftest.py      # Test fixtures
 │   │   ├── test_agents.py   # Agent unit tests
@@ -505,9 +657,15 @@ ai-support-agent-platform/
 - `GET /api/ready` - Readiness probe (K8s)
 - `GET /api/live` - Liveness probe (K8s)
 
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login and get JWT token
+- `GET /api/auth/me` - Get current user info (requires auth)
+
 ### Chat
-- `POST /api/chat` - Send message to agent
-- `GET /api/conversations/{id}` - Get conversation history
+- `POST /api/chat` - Send message to agent (REST, with rate limiting)
+- `WS /api/ws/chat` - WebSocket endpoint for streaming chat
+- `GET /api/conversations/{id}` - Get conversation history with all messages
 
 ### Metrics
 - `GET /metrics` - Prometheus metrics
@@ -607,6 +765,70 @@ kubectl rollout status deployment/backend -n production
 kubectl logs -f deployment/backend -n production
 ```
 
+## TODO: Production Implementation
+
+### Replace Simulated Tools with Real Implementations
+
+**Current State:** All action tools in `backend/app/tools/sample_tools.py` use simulated/random data for demonstration purposes.
+
+**Action Tools to Implement:**
+
+1. **`get_order_status`** (Currently: random status/tracking)
+   - [ ] Integrate with real e-commerce API or order management system
+   - [ ] Query actual order database (PostgreSQL table or external service)
+   - [ ] Return real order status, tracking numbers, and delivery estimates
+   - [ ] Add error handling for non-existent orders
+
+2. **`cancel_subscription`** (Currently: random refund amounts)
+   - [ ] Integrate with payment processor (Stripe, PayPal, etc.)
+   - [ ] Update subscription status in database
+   - [ ] Process actual refunds through payment API
+   - [ ] Send cancellation confirmation emails
+
+3. **`update_shipping_address`** (Currently: just returns success)
+   - [ ] Validate address using address verification API
+   - [ ] Update order in database or order management system
+   - [ ] Check if order can still be modified (not shipped yet)
+   - [ ] Notify warehouse/fulfillment system of address change
+
+4. **`get_account_balance`** (Currently: random balance)
+   - [ ] Query real user account/wallet system
+   - [ ] Integrate with payment processor for accurate balance
+   - [ ] Return actual transaction history
+   - [ ] Add currency conversion if multi-currency support needed
+
+**Implementation Guide:**
+
+```python
+# Example: Real order status implementation
+async def get_order_status(order_id: str) -> Dict[str, Any]:
+    # Option 1: Query your order database
+    async with get_db() as db:
+        order = await db.execute(
+            "SELECT * FROM orders WHERE id = :id",
+            {"id": order_id}
+        )
+        if not order:
+            raise ValueError(f"Order {order_id} not found")
+        return {
+            "order_id": order.id,
+            "status": order.status,
+            "tracking_number": order.tracking_number,
+            "estimated_delivery": order.estimated_delivery,
+        }
+
+    # Option 2: Call external e-commerce API
+    # response = await httpx.get(f"https://api.yourstore.com/orders/{order_id}")
+    # return response.json()
+```
+
+**Database Schema Needed:**
+- Orders table (id, user_id, status, tracking_number, created_at, etc.)
+- Subscriptions table (id, user_id, plan, status, next_billing_date, etc.)
+- Transactions table (id, user_id, amount, type, created_at, etc.)
+
+**Note:** Without real tool implementations, the Tool Agent will return simulated data that changes on each request.
+
 ## Roadmap
 
 - [x] Project setup and Docker configuration
@@ -621,11 +843,12 @@ kubectl logs -f deployment/backend -n production
 - [x] Tool agent with function calling
 - [x] Frontend React chat interface (TypeScript + Vite)
 - [x] Comprehensive testing suite (23 tests, 63% coverage)
-- [ ] Conversation history persistence
-- [ ] Advanced RAG with hybrid search
-- [ ] WebSocket support for real-time streaming
-- [ ] User authentication and authorization
-- [ ] Rate limiting and request throttling
+- [x] Conversation history persistence with PostgreSQL
+- [x] Advanced RAG with hybrid search (dense + sparse/BM25)
+- [x] WebSocket support for real-time streaming
+- [x] User authentication and authorization (JWT)
+- [x] Rate limiting and request throttling
+- [ ] Replace simulated tools with real implementations (orders, subscriptions, payments)
 
 ## Contributing
 

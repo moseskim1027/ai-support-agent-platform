@@ -13,10 +13,13 @@ def setup_test_environment():
     os.environ["ENVIRONMENT"] = "test"
 
     # Set required API keys with dummy values
-    os.environ["OPENAI_API_KEY"] = "sk-test-key-for-testing-only"
+    os.environ["GEMINI_API_KEY"] = "AIza-test-key-for-testing-only"
 
-    # Set optional service URLs to avoid connection attempts
-    os.environ["POSTGRES_URL"] = "postgresql://test:test@localhost:5432/test_db"  # noqa: E501
+    # Set service URLs to match local Docker containers
+    # CI will override these with its own environment variables
+    os.environ["POSTGRES_URL"] = (
+        "postgresql://postgres:postgres@localhost:5432/ai_support"  # noqa: E501
+    )
     os.environ["REDIS_URL"] = "redis://localhost:6379/0"
     os.environ["QDRANT_URL"] = "http://localhost:6333"
 
@@ -26,9 +29,13 @@ def setup_test_environment():
     # Could remove env vars here if needed
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def client():
-    """Create a test client for the FastAPI app"""
+    """Create a test client for the FastAPI app
+
+    Function scope ensures each test gets a fresh client instance
+    to avoid state pollution between tests.
+    """
     from app.main import app
 
     return TestClient(app)

@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
-const Header = () => {
+interface HeaderProps {
+  showBackButton?: boolean;
+  onBack?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ showBackButton = false, onBack }) => {
+  const { user, logout } = useAuth();
   const [isHealthy, setIsHealthy] = useState(false);
   const [version, setVersion] = useState('');
 
@@ -24,12 +31,36 @@ const Header = () => {
 
   return (
     <header className="header">
-      <h1>AI Support Agent Platform</h1>
-      <p>Multi-agent orchestration with LangGraph & OpenAI</p>
+      <div className="header-content">
+        <div className="header-left">
+          <h1>AI Support Agent Platform</h1>
+          <p>Multi-agent orchestration with LangGraph & OpenAI</p>
+        </div>
+        <div className="header-right">
+          <div className="user-menu">
+            <div>
+              <span className="user-info">👤 {user?.full_name || user?.username}</span>
+              <button onClick={logout} className="logout-button">
+                Logout
+              </button>
+            </div>
+            {showBackButton && (
+              <button onClick={onBack} className="back-button">
+                ← Back
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
       {version && (
         <div className="status-indicator">
-          <span className="status-dot" style={{ backgroundColor: isHealthy ? '#10b981' : '#ef4444' }}></span>
-          <span>Backend {isHealthy ? 'Connected' : 'Disconnected'} (v{version})</span>
+          <span
+            className="status-dot"
+            style={{ backgroundColor: isHealthy ? '#10b981' : '#ef4444' }}
+          ></span>
+          <span>
+            Backend {isHealthy ? 'Connected' : 'Disconnected'} (v{version})
+          </span>
         </div>
       )}
     </header>

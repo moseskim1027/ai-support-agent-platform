@@ -24,12 +24,18 @@ RUN pip install --no-cache-dir --user --no-warn-script-location \
 # Final stage
 FROM python:3.11-slim
 
+# Set working directory
+WORKDIR /app
+
+# Copy entrypoint script and make executable (before switching to non-root)
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser
 
-# Set working directory and change ownership
-WORKDIR /app
-RUN chown appuser:appuser /app
+# Change ownership
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
@@ -50,5 +56,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/api/health')"
 
-# Run application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run application with migrations
+CMD ["/bin/bash", "/app/entrypoint.sh"]

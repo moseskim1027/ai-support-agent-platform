@@ -1,0 +1,51 @@
+Account Management Guide
+
+Managing Your Account
+
+Creating an Account:
+- Click "Sign Up" on the homepage
+- Enter your email address and create a password
+- Verify your email address through the confirmation link
+- Complete your profile information
+- Start shopping!
+
+Updating Profile Information:
+1. Log into your account
+2. Click on "Account Settings" in the dropdown menu
+3. Update your personal information (name, email, phone)
+4. Click "Save Changes" to update
+
+Managing Addresses:
+- You can save multiple shipping and billing addresses
+- Set a default address for faster checkout
+- Edit or delete addresses at any time
+- Address book is located in "Account Settings"
+
+Changing Your Email:
+1. Go to "Account Settings"
+2. Click "Change Email"
+3. Enter your new email address
+4. Verify the new email through confirmation link
+5. Your old email will no longer work for login
+
+Changing Your Password:
+1. Go to "Account Settings"
+2. Click "Change Password"
+3. Enter your current password
+4. Enter your new password (min 8 characters)
+5. Confirm your new password
+6. Click "Update Password"
+
+Email Preferences:
+- Manage your email subscriptions in "Communication Preferences"
+- Choose to receive promotional emails, order updates, or newsletters
+- Update preferences at any time
+- Unsubscribe links are in every marketing email
+
+Closing Your Account:
+- Contact customer support to request account closure
+- All personal data will be deleted within 30 days
+- Order history will be retained for legal compliance
+- This action cannot be undone
+
+For account issues, contact support@example.com or call 1-800-SUPPORT.
