@@ -91,6 +91,14 @@ jobs:
           cd backend
           pip install -r requirements.txt
 
+      - name: Run database migrations
+        env:
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          GEMINI_API_KEY: AIza-test-key-for-ci
+        run: |
+          cd backend
+          alembic upgrade head
+
       - name: Run tests with coverage
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'AIza-test-key-for-ci' }}

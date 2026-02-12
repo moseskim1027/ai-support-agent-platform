@@ -1,5 +1,6 @@
 """Tests for RAG (Retrieval-Augmented Generation) functionality - Local testing with real API"""
 
+import uuid
 from unittest.mock import patch
 
 import pytest
@@ -165,6 +166,7 @@ class TestRAGIntegration:
 
     def test_chat_api_with_knowledge_intent(self, client):
         """Test chat API routes to RAG for knowledge queries"""
+        test_uuid = str(uuid.uuid4())
         # Mock the orchestrator at the module level before it gets imported
         with patch("app.api.chat.orchestrator") as mock_orchestrator:
             # Create async mock for process method
@@ -182,8 +184,8 @@ class TestRAGIntegration:
                 "/api/chat",
                 json={
                     "message": "What is your return policy?",
-                    "conversation_id": "test-123",
-                },  # noqa: E501
+                    "conversation_id": test_uuid,
+                },
             )
 
             assert response.status_code == 200
@@ -192,7 +194,7 @@ class TestRAGIntegration:
             # Should have correct structure
             assert data["intent"] == "knowledge"
             assert "message" in data
-            assert data["conversation_id"] == "test-123"
+            assert data["conversation_id"] == test_uuid
             assert data["agent_type"] == "rag"
 
     def test_rag_response_includes_metadata(self, client):

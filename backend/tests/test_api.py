@@ -1,5 +1,6 @@
 """Tests for FastAPI endpoints"""
 
+import uuid
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -62,6 +63,7 @@ async def test_chat_endpoint_success(mock_orchestrator):
 @patch("app.api.chat.orchestrator")
 async def test_chat_endpoint_with_conversation_id(mock_orchestrator):
     """Test chat endpoint with conversation ID"""
+    test_uuid = str(uuid.uuid4())
     mock_orchestrator.process = AsyncMock(
         return_value={
             "message": "Test response",
@@ -71,14 +73,12 @@ async def test_chat_endpoint_with_conversation_id(mock_orchestrator):
         }
     )
 
-    response = client.post(
-        "/api/chat", json={"message": "Test", "conversation_id": "test-conv-123"}
-    )
+    response = client.post("/api/chat", json={"message": "Test", "conversation_id": test_uuid})
 
     assert response.status_code == 200
     data = response.json()
     assert "conversation_id" in data
-    assert data["conversation_id"] == "test-conv-123"
+    assert data["conversation_id"] == test_uuid
 
 
 @pytest.mark.asyncio
