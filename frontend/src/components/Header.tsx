@@ -2,12 +2,8 @@ import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
-interface HeaderProps {
-  onShowAuth?: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onShowAuth }) => {
-  const { user, isAuthenticated, logout } = useAuth();
+const Header: React.FC = () => {
+  const { user, logout } = useAuth();
   const [isHealthy, setIsHealthy] = useState(false);
   const [version, setVersion] = useState('');
 
@@ -36,18 +32,12 @@ const Header: React.FC<HeaderProps> = ({ onShowAuth }) => {
           <p>Multi-agent orchestration with LangGraph & OpenAI</p>
         </div>
         <div className="header-right">
-          {isAuthenticated && user ? (
-            <div className="user-menu">
-              <span className="user-info">👤 {user.full_name || user.username}</span>
-              <button onClick={logout} className="logout-button">
-                Logout
-              </button>
-            </div>
-          ) : (
-            <button onClick={onShowAuth} className="login-button">
-              Sign In
+          <div className="user-menu">
+            <span className="user-info">👤 {user?.full_name || user?.username}</span>
+            <button onClick={logout} className="logout-button">
+              Logout
             </button>
-          )}
+          </div>
         </div>
       </div>
       {version && (

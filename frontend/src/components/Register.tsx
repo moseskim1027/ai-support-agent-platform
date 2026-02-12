@@ -47,8 +47,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div className="auth-card">
         <h2>Create Account</h2>
         <p className="auth-subtitle">Sign up to get started</p>
 
@@ -144,7 +143,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
           </button>
         </div>
       </div>
-    </div>
   );
 };
 
