@@ -17,7 +17,9 @@ def setup_test_environment():
 
     # Set service URLs to match local Docker containers
     # CI will override these with its own environment variables
-    os.environ["POSTGRES_URL"] = "postgresql://postgres:postgres@localhost:5432/ai_support"  # noqa: E501
+    os.environ["POSTGRES_URL"] = (
+        "postgresql://postgres:postgres@localhost:5432/ai_support"  # noqa: E501
+    )
     os.environ["REDIS_URL"] = "redis://localhost:6379/0"
     os.environ["QDRANT_URL"] = "http://localhost:6333"
 
