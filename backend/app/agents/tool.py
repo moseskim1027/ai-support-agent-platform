@@ -42,9 +42,9 @@ Response:"""
 
     def __init__(self):
         super().__init__("tool")
-        # Using Gemini 2.5 Flash (free tier) for tool calling
+        # Using Gemini 2.5 Flash Lite (free tier) for tool calling
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-flash-lite",
             temperature=0,
             google_api_key=settings.gemini_api_key,
         )

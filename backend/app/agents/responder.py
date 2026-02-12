@@ -31,9 +31,9 @@ Response:"""
 
     def __init__(self):
         super().__init__("responder")
-        # Using Gemini 2.5 Flash (free tier) for conversational responses
+        # Using Gemini 2.5 Flash Lite (free tier) for conversational responses
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-flash-lite",
             temperature=0.7,
             google_api_key=settings.gemini_api_key,
         )
