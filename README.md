@@ -765,6 +765,70 @@ kubectl rollout status deployment/backend -n production
 kubectl logs -f deployment/backend -n production
 ```
 
+## TODO: Production Implementation
+
+### Replace Simulated Tools with Real Implementations
+
+**Current State:** All action tools in `backend/app/tools/sample_tools.py` use simulated/random data for demonstration purposes.
+
+**Action Tools to Implement:**
+
+1. **`get_order_status`** (Currently: random status/tracking)
+   - [ ] Integrate with real e-commerce API or order management system
+   - [ ] Query actual order database (PostgreSQL table or external service)
+   - [ ] Return real order status, tracking numbers, and delivery estimates
+   - [ ] Add error handling for non-existent orders
+
+2. **`cancel_subscription`** (Currently: random refund amounts)
+   - [ ] Integrate with payment processor (Stripe, PayPal, etc.)
+   - [ ] Update subscription status in database
+   - [ ] Process actual refunds through payment API
+   - [ ] Send cancellation confirmation emails
+
+3. **`update_shipping_address`** (Currently: just returns success)
+   - [ ] Validate address using address verification API
+   - [ ] Update order in database or order management system
+   - [ ] Check if order can still be modified (not shipped yet)
+   - [ ] Notify warehouse/fulfillment system of address change
+
+4. **`get_account_balance`** (Currently: random balance)
+   - [ ] Query real user account/wallet system
+   - [ ] Integrate with payment processor for accurate balance
+   - [ ] Return actual transaction history
+   - [ ] Add currency conversion if multi-currency support needed
+
+**Implementation Guide:**
+
+```python
+# Example: Real order status implementation
+async def get_order_status(order_id: str) -> Dict[str, Any]:
+    # Option 1: Query your order database
+    async with get_db() as db:
+        order = await db.execute(
+            "SELECT * FROM orders WHERE id = :id",
+            {"id": order_id}
+        )
+        if not order:
+            raise ValueError(f"Order {order_id} not found")
+        return {
+            "order_id": order.id,
+            "status": order.status,
+            "tracking_number": order.tracking_number,
+            "estimated_delivery": order.estimated_delivery,
+        }
+
+    # Option 2: Call external e-commerce API
+    # response = await httpx.get(f"https://api.yourstore.com/orders/{order_id}")
+    # return response.json()
+```
+
+**Database Schema Needed:**
+- Orders table (id, user_id, status, tracking_number, created_at, etc.)
+- Subscriptions table (id, user_id, plan, status, next_billing_date, etc.)
+- Transactions table (id, user_id, amount, type, created_at, etc.)
+
+**Note:** Without real tool implementations, the Tool Agent will return simulated data that changes on each request.
+
 ## Roadmap
 
 - [x] Project setup and Docker configuration
@@ -784,6 +848,7 @@ kubectl logs -f deployment/backend -n production
 - [x] WebSocket support for real-time streaming
 - [x] User authentication and authorization (JWT)
 - [x] Rate limiting and request throttling
+- [ ] Replace simulated tools with real implementations (orders, subscriptions, payments)
 
 ## Contributing
 
