@@ -1,4 +1,4 @@
-"""RAG Agent for knowledge retrieval"""
+"""RAG Agent for knowledge retrieval with hybrid search"""
 
 from typing import List
 
@@ -10,6 +10,7 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 from app.agents.base import BaseAgent
 from app.agents.state import ConversationState, Message
 from app.config import settings
+from app.rag.hybrid_retriever import HybridRetriever
 
 
 class RAGAgent(BaseAgent):
@@ -50,9 +51,18 @@ Answer:"""
             self.qdrant = QdrantClient(url=settings.qdrant_url)
             self.collection_name = "knowledge_base"
             self._initialize_collection()
+
+            # Initialize hybrid retriever
+            self.hybrid_retriever = HybridRetriever(
+                qdrant_client=self.qdrant,
+                collection_name=self.collection_name,
+                embeddings=self.embeddings,
+            )
+            self._build_bm25_index()
         except Exception as e:
             self.logger.warning(f"Qdrant not available: {e}")
             self.qdrant = None
+            self.hybrid_retriever = None
 
     def _initialize_collection(self):
         """Create collection if it doesn't exist"""
@@ -130,6 +140,33 @@ Answer:"""
         except Exception as e:
             self.logger.error(f"Error adding documents: {e}")
 
+    def _build_bm25_index(self):
+        """Build BM25 index from documents in Qdrant"""
+        if not self.qdrant or not self.hybrid_retriever:
+            return
+
+        try:
+            # Scroll through all documents in collection
+            records, _ = self.qdrant.scroll(
+                collection_name=self.collection_name,
+                limit=1000,  # Adjust based on your collection size
+            )
+
+            if not records:
+                self.logger.warning("No documents found in Qdrant to build BM25 index")
+                return
+
+            # Extract documents
+            documents = [record.payload for record in records]
+
+            # Build BM25 index
+            self.hybrid_retriever.build_bm25_index(documents)
+
+            self.logger.info(f"Built BM25 index with {len(documents)} documents")
+
+        except Exception as e:
+            self.logger.error(f"Error building BM25 index: {e}", exc_info=True)
+
     def _chunk_text(self, text: str, max_length: int = 500) -> List[str]:
         """Split text into chunks of approximately max_length chars"""
         # Split by paragraphs first
@@ -171,13 +208,14 @@ Answer:"""
 
         return chunks if chunks else [text]
 
-    async def retrieve(self, query: str, top_k: int = 3) -> List[str]:
+    async def retrieve(self, query: str, top_k: int = 3, use_hybrid: bool = True) -> List[str]:
         """
-        Retrieve relevant documents from knowledge base
+        Retrieve relevant documents from knowledge base using hybrid search
 
         Args:
             query: User query
             top_k: Number of documents to retrieve
+            use_hybrid: Whether to use hybrid search (True) or just dense search (False)
 
         Returns:
             List of relevant document texts
@@ -186,22 +224,36 @@ Answer:"""
             return []
 
         try:
-            # Generate query embedding
-            query_embedding = self.embeddings.embed_query(query)
+            # Use hybrid retriever if available and requested
+            if self.hybrid_retriever and use_hybrid:
+                documents = await self.hybrid_retriever.retrieve(
+                    query, top_k=top_k, use_hybrid=True
+                )
+                search_method = "hybrid"
+            else:
+                # Fallback to dense-only search
+                query_embedding = self.embeddings.embed_query(query)
 
-            # Search in Qdrant
-            results = self.qdrant.search(
-                collection_name=self.collection_name,
-                query_vector=query_embedding,
-                limit=top_k,
-            )
+                # Search in Qdrant
+                results = self.qdrant.search(
+                    collection_name=self.collection_name,
+                    query_vector=query_embedding,
+                    limit=top_k,
+                )
 
-            # Extract document texts
-            documents = [hit.payload["text"] for hit in results if hit.score > 0.7]  # noqa: E501
+                # Extract document texts
+                documents = [
+                    hit.payload["text"] for hit in results if hit.score > 0.7
+                ]  # noqa: E501
+                search_method = "dense"
 
             self.log_execution(
                 "retrieve_documents",
-                {"query": query[:50], "num_docs": len(documents)},
+                {
+                    "query": query[:50],
+                    "num_docs": len(documents),
+                    "search_method": search_method,
+                },
             )
 
             return documents
