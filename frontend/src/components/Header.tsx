@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  showBackButton?: boolean;
+  onBack?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ showBackButton = false, onBack }) => {
   const { user, logout } = useAuth();
   const [isHealthy, setIsHealthy] = useState(false);
   const [version, setVersion] = useState('');
@@ -33,10 +38,17 @@ const Header: React.FC = () => {
         </div>
         <div className="header-right">
           <div className="user-menu">
-            <span className="user-info">👤 {user?.full_name || user?.username}</span>
-            <button onClick={logout} className="logout-button">
-              Logout
-            </button>
+            <div>
+              <span className="user-info">👤 {user?.full_name || user?.username}</span>
+              <button onClick={logout} className="logout-button">
+                Logout
+              </button>
+            </div>
+            {showBackButton && (
+              <button onClick={onBack} className="back-button">
+                ← Back
+              </button>
+            )}
           </div>
         </div>
       </div>

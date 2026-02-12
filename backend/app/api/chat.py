@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -53,7 +53,7 @@ class ChatResponse(BaseModel):
 
 @router.post("/chat", response_model=ChatResponse)
 @limiter.limit("20/minute")
-async def chat(req: Request, request: ChatRequest, db: AsyncSession = Depends(get_db)):
+async def chat(request: Request, response: Response, chat_request: ChatRequest, db: AsyncSession = Depends(get_db)):
     """
     Chat endpoint for agent interactions
 
@@ -61,20 +61,22 @@ async def chat(req: Request, request: ChatRequest, db: AsyncSession = Depends(ge
     to appropriate specialized agents (RAG, Tool, or Conversational).
 
     Args:
-        request: Chat request with message and optional context
+        request: Starlette Request object (required for rate limiting)
+        response: Starlette Response object (required for rate limiting headers)
+        chat_request: Chat request with message and optional context
         db: Database session
 
     Returns:
         ChatResponse: Agent response with metadata
     """
     try:
-        logger.info(f"Received chat request: {request.message[:50]}...")
+        logger.info(f"Received chat request: {chat_request.message[:50]}...")
 
         repo = ConversationRepository(db)
 
         # Get or create conversation
-        if request.conversation_id:
-            conv_uuid = uuid.UUID(request.conversation_id)
+        if chat_request.conversation_id:
+            conv_uuid = uuid.UUID(chat_request.conversation_id)
             conversation = await repo.get_conversation(conv_uuid, include_messages=True)
 
             if conversation:
@@ -96,12 +98,12 @@ async def chat(req: Request, request: ChatRequest, db: AsyncSession = Depends(ge
         await repo.add_message(
             conversation_id=conversation.id,
             role="user",
-            content=request.message,
+            content=chat_request.message,
         )
 
         # Process through agent orchestration
         result = await orchestrator.process(
-            user_message=request.message, conversation_history=conversation_history
+            user_message=chat_request.message, conversation_history=conversation_history
         )
 
         # Add assistant response to database

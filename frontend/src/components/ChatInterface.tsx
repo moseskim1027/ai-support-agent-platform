@@ -1,11 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { apiService } from '../services/api';
 import { Message, ChatResponse } from '../types';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
 import WelcomeScreen from './WelcomeScreen';
 
-const ChatInterface = () => {
+interface ChatInterfaceProps {
+  onChatModeChange: (inChatMode: boolean) => void;
+}
+
+export interface ChatInterfaceHandle {
+  handleBackToWelcome: () => void;
+}
+
+const ChatInterface = forwardRef<ChatInterfaceHandle, ChatInterfaceProps>(({ onChatModeChange }, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +31,18 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [messages]);
 
+  const handleBackToWelcome = () => {
+    setMessages([]);
+    setConversationId(null);
+    setError(null);
+    setInChatMode(false);
+  };
+
+  // Expose handleBackToWelcome to parent via ref
+  useImperativeHandle(ref, () => ({
+    handleBackToWelcome,
+  }));
+
   // Handle browser back button
   useEffect(() => {
     const handlePopState = () => {
@@ -39,18 +59,15 @@ const ChatInterface = () => {
   useEffect(() => {
     if (messages.length > 0 && !inChatMode) {
       setInChatMode(true);
+      onChatModeChange(true);
       window.history.pushState({ chat: true }, '', '');
+    } else if (messages.length === 0 && inChatMode) {
+      setInChatMode(false);
+      onChatModeChange(false);
     }
-  }, [messages.length]);
+  }, [messages.length, inChatMode, onChatModeChange]);
 
-  const handleBackToWelcome = () => {
-    setMessages([]);
-    setConversationId(null);
-    setError(null);
-    setInChatMode(false);
-  };
-
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, hideUserMessage: boolean = false) => {
     if (!content.trim()) return;
 
     const userMessage: Message = {
@@ -59,7 +76,11 @@ const ChatInterface = () => {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    // Only add user message to UI if not hidden (for introductory messages)
+    if (!hideUserMessage) {
+      setMessages((prev) => [...prev, userMessage]);
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -90,7 +111,8 @@ const ChatInterface = () => {
   };
 
   const handleSamplePrompt = (prompt: string) => {
-    handleSendMessage(prompt);
+    // Hide the user message for sample prompts - only show assistant response
+    handleSendMessage(prompt, true);
   };
 
   return (
@@ -98,25 +120,15 @@ const ChatInterface = () => {
       {messages.length === 0 ? (
         <WelcomeScreen onSamplePrompt={handleSamplePrompt} />
       ) : (
-        <>
-          <button
-            className="back-button"
-            onClick={() => {
-              handleBackToWelcome();
-              window.history.back();
-            }}
-            aria-label="Back to welcome screen"
-          >
-            ← Back
-          </button>
-          <MessageList messages={messages} isLoading={isLoading} />
-        </>
+        <MessageList messages={messages} isLoading={isLoading} />
       )}
       {error && <div className="error-message">{error}</div>}
       <div ref={messagesEndRef} />
       <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} disabled={isLoading} />
     </>
   );
-};
+});
+
+ChatInterface.displayName = 'ChatInterface';
 
 export default ChatInterface;
