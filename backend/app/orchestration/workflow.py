@@ -85,10 +85,17 @@ class AgentOrchestrator:
         updated_state = await self.responder.run(state_obj)
         return updated_state.model_dump()
 
-    def _route_decision(self, state: dict) -> str:
+    def _route_decision(self, state) -> str:
         """Determine which agent to route to based on intent"""
-        next_step = state.get("next_step") or "respond"
-        logger.info(f"Routing to: {next_step} (intent: {state.get('intent')})")
+        # Handle both dict and ConversationState object
+        if isinstance(state, dict):
+            next_step = state.get("next_step", "respond")
+            intent = state.get("intent", "unknown")
+        else:
+            # State is a ConversationState object
+            next_step = getattr(state, "next_step", "respond") or "respond"
+            intent = getattr(state, "intent", "unknown")
+        logger.info(f"Routing to: {next_step} (intent: {intent})")
         return next_step
 
     async def process(self, user_message: str, conversation_history: list = None) -> Dict[str, Any]:

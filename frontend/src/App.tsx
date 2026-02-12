@@ -1,13 +1,12 @@
-import Header from './components/Header';
-import ChatInterface from './components/ChatInterface';
+import { AuthProvider } from './contexts/AuthContext';
+import AuthGate from './components/AuthGate';
 import './styles/App.css';
 
 function App() {
   return (
-    <div className="app">
-      <Header />
-      <ChatInterface />
-    </div>
+    <AuthProvider>
+      <AuthGate />
+    </AuthProvider>
   );
 }
 

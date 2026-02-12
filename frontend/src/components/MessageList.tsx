@@ -10,9 +10,7 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
     <div className="chat-container">
       {messages.map((message, index) => (
         <div key={index} className={`message ${message.role}`}>
-          <div className="message-avatar">
-            {message.role === 'user' ? 'U' : 'AI'}
-          </div>
+          <div className="message-avatar">{message.role === 'user' ? 'U' : 'AI'}</div>
           <div className="message-content">
             <div className="message-bubble">{message.content}</div>
             {message.timestamp && (
