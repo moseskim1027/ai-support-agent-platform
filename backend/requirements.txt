@@ -1,16 +1,15 @@
 # Core FastAPI
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-pydantic==2.5.3
-pydantic-settings==2.1.0
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.10.0
+pydantic-settings==2.6.0
 email-validator==2.1.0
 
 # Agent Frameworks
-langchain==0.1.4
-langchain-community==0.0.16
-langchain-openai==0.0.3
-langchain-anthropic==0.1.1
-langgraph==0.0.20
+langchain==0.3.1
+langchain-community==0.3.1
+langchain-google-genai==2.0.0
+langgraph==0.2.34
 
 # Vector Database
 qdrant-client==1.7.0

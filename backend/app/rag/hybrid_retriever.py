@@ -3,7 +3,7 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from qdrant_client import QdrantClient
 from rank_bm25 import BM25Okapi
 
@@ -21,7 +21,7 @@ class HybridRetriever:
         self,
         qdrant_client: QdrantClient,
         collection_name: str,
-        embeddings: OpenAIEmbeddings,
+        embeddings: GoogleGenerativeAIEmbeddings,
     ):
         """
         Initialize hybrid retriever
@@ -29,7 +29,7 @@ class HybridRetriever:
         Args:
             qdrant_client: Qdrant client instance
             collection_name: Name of Qdrant collection
-            embeddings: OpenAI embeddings instance
+            embeddings: Google Gemini embeddings instance
         """
         self.qdrant = qdrant_client
         self.collection_name = collection_name

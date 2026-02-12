@@ -1,7 +1,7 @@
 """Router Agent for intent classification"""
 
 from langchain.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.agents.base import BaseAgent
 from app.agents.state import ConversationState
@@ -39,10 +39,11 @@ Format: category|reasoning
 
     def __init__(self):
         super().__init__("router")
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
+        # Using Gemini 2.5 Flash (free tier) for fast, efficient routing
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
             temperature=0,
-            openai_api_key=settings.openai_api_key,
+            google_api_key=settings.gemini_api_key,
         )
         self.prompt = ChatPromptTemplate.from_template(self.ROUTING_PROMPT)
 

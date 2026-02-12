@@ -3,7 +3,7 @@
 from typing import List
 
 from langchain.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
@@ -38,12 +38,17 @@ Answer:"""
 
     def __init__(self):
         super().__init__("rag")
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
+        # Using Gemini 2.5 Flash (free tier) for RAG responses
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
             temperature=0.3,
-            openai_api_key=settings.openai_api_key,
+            google_api_key=settings.gemini_api_key,
         )
-        self.embeddings = OpenAIEmbeddings(openai_api_key=settings.openai_api_key)  # noqa: E501
+        # Using text-embedding-004 (free tier) for document embeddings
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/text-embedding-004",
+            google_api_key=settings.gemini_api_key,
+        )
         self.prompt = ChatPromptTemplate.from_template(self.RAG_PROMPT)
 
         # Initialize Qdrant client
@@ -73,7 +78,7 @@ Answer:"""
             if self.collection_name not in collection_names:
                 self.qdrant.create_collection(
                     collection_name=self.collection_name,
-                    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),  # noqa: E501
+                    vectors_config=VectorParams(size=768, distance=Distance.COSINE),  # Gemini embedding-001
                 )
                 self.logger.info(f"Created collection: {self.collection_name}")
 

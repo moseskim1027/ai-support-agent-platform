@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     cors_origins: str = Field(default="*", description="Comma-separated CORS origins")
 
     # API Keys (Required)
-    openai_api_key: str = Field(..., description="OpenAI API key (required)")
+    gemini_api_key: str = Field(..., description="Google Gemini API key (required)")
 
     # Database
     postgres_url: str = Field(
@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     agent_temperature: float = Field(default=0.7, description="LLM temperature")
     rag_top_k: int = Field(default=5, description="Number of RAG results to retrieve")
     embedding_model: str = Field(
-        default="text-embedding-ada-002", description="OpenAI embedding model"
+        default="models/text-embedding-004", description="Google Gemini embedding model (free tier)"
     )
 
     # Observability
@@ -96,17 +96,17 @@ class Settings(BaseSettings):
             )
         return v
 
-    @field_validator("openai_api_key")
+    @field_validator("gemini_api_key")
     @classmethod
-    def validate_openai_api_key(cls, v: str) -> str:
-        """Validate OpenAI API key format"""
-        if not v or v == "your_openai_api_key_here" or v == "sk-your-openai-api-key-here":
+    def validate_gemini_api_key(cls, v: str) -> str:
+        """Validate Google Gemini API key format"""
+        if not v or v == "your-gemini-api-key-here" or v == "your_gemini_api_key_here":
             raise ValueError(
-                "OPENAI_API_KEY is required! "
-                "Get your API key from https://platform.openai.com/api-keys"
+                "GEMINI_API_KEY is required! "
+                "Get your API key from https://aistudio.google.com/app/apikey"
             )
-        if not v.startswith("sk-"):
-            logger.warning("OPENAI_API_KEY should start with 'sk-'")
+        if not v.startswith("AIza"):
+            logger.warning("GEMINI_API_KEY should start with 'AIza'")
         return v
 
     @property
@@ -140,7 +140,7 @@ class Settings(BaseSettings):
         logger.info(f"Log Level: {self.log_level}")
         logger.info(f"Debug Mode: {self.debug}")
         logger.info(f"API: {self.api_host}:{self.api_port}")
-        logger.info(f"OpenAI API Key: {'*' * 10}{self.openai_api_key[-4:]}")
+        logger.info(f"Gemini API Key: {'*' * 10}{self.gemini_api_key[-4:]}")
         logger.info(f"Postgres: {self._mask_url(self.postgres_url)}")
         logger.info(f"Redis: {self._mask_url(self.redis_url)}")
         logger.info(f"Qdrant: {self.qdrant_url}")
@@ -181,7 +181,7 @@ def setup_logging():
     # Reduce noise from verbose libraries
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
-    logging.getLogger("openai").setLevel(logging.INFO)
+    logging.getLogger("google.generativeai").setLevel(logging.INFO)
 
 
 # Setup logging on import

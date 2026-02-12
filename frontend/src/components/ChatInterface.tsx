@@ -111,8 +111,8 @@ const ChatInterface = forwardRef<ChatInterfaceHandle, ChatInterfaceProps>(({ onC
   };
 
   const handleSamplePrompt = (prompt: string) => {
-    // Hide the user message for sample prompts - only show assistant response
-    handleSendMessage(prompt, true);
+    // Show the user message for sample prompts so user knows the query
+    handleSendMessage(prompt, false);
   };
 
   return (
