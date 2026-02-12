@@ -5,10 +5,10 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 build: ## Build Docker images
-	docker-compose build
+	docker compose build
 
 up: ## Start all services
-	docker-compose up -d
+	docker compose up -d
 	@echo "Services starting..."
 	@echo "Backend API: http://localhost:8000"
 	@echo "API Docs: http://localhost:8000/api/docs"
@@ -16,13 +16,13 @@ up: ## Start all services
 	@echo "Prometheus: http://localhost:9090"
 
 down: ## Stop all services
-	docker-compose down
+	docker compose down
 
 logs: ## View logs from all services
-	docker-compose logs -f
+	docker compose logs -f
 
 logs-backend: ## View backend logs
-	docker-compose logs -f backend
+	docker compose logs -f backend
 
 test: ## Run tests
 	cd backend && pytest tests/ -v
@@ -31,7 +31,7 @@ test-cov: ## Run tests with coverage
 	cd backend && pytest tests/ -v --cov=app --cov-report=html
 
 clean: ## Clean up containers and volumes
-	docker-compose down -v
+	docker compose down -v
 	rm -rf backend/__pycache__ backend/.pytest_cache
 	find . -type d -name "__pycache__" -exec rm -r {} +
 
@@ -42,7 +42,7 @@ health: ## Check service health
 	@curl -s http://localhost:8000/api/health | python -m json.tool
 
 shell-backend: ## Shell into backend container
-	docker-compose exec backend /bin/bash
+	docker compose exec backend /bin/bash
 
 shell-db: ## Shell into postgres container
-	docker-compose exec postgres psql -U postgres -d ai_support
+	docker compose exec postgres psql -U postgres -d ai_support
