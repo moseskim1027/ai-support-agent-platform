@@ -239,6 +239,8 @@ cp .env.example .env
 # 4. Start all services (frontend + backend + databases)
 docker-compose up -d
 
+# Note: Database migrations run automatically on backend startup
+
 # 5. View logs
 docker-compose logs -f frontend backend
 ```
@@ -272,11 +274,26 @@ cp .env.example .env
 # 5. Start services (requires Docker for databases)
 docker-compose up -d postgres redis qdrant
 
-# 6. Run backend server
+# 6. Run database migrations
+alembic upgrade head
+
+# 7. Run backend server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Backend will be available at http://localhost:8000
+
+**Database Migrations:**
+```bash
+# Create a new migration after model changes
+alembic revision --autogenerate -m "description of changes"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback one migration
+alembic downgrade -1
+```
 
 **Frontend Only:**
 
