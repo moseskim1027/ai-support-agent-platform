@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [develop]  # Only run CI on develop pushes
+    branches: [develop]  # Run CI on develop pushes
   pull_request:
-    branches: [develop, staging, main]  # Run CI on all PRs for validation
+    branches: [staging, main]  # Run CI only on PRs to staging/main (not develop)
 
 # Cancel in-progress runs when new commits are pushed
 concurrency:
