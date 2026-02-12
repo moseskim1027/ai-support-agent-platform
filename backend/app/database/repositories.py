@@ -24,7 +24,7 @@ class ConversationRepository:
         conversation = Conversation(
             id=conversation_id or uuid.uuid4(),
             user_id=user_id,
-            metadata={},
+            conv_metadata={},
         )
         self.db.add(conversation)
         await self.db.flush()
