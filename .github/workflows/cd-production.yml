@@ -6,6 +6,11 @@ on:
     tags:
       - 'v*.*.*'
 
+# Cancel in-progress deployments when new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: ai-support-agent-platform
