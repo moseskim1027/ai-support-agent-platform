@@ -86,9 +86,7 @@ async def test_router_agent_handles_llm_errors():
 
         router = RouterAgent()
 
-        state = ConversationState(
-            messages=[Message(role="user", content="Test message")]
-        )
+        state = ConversationState(messages=[Message(role="user", content="Test message")])
 
         result = await router.run(state)
 
@@ -110,9 +108,7 @@ async def test_router_agent_invalid_intent_response():
 
         router = RouterAgent()
 
-        state = ConversationState(
-            messages=[Message(role="user", content="Test message")]
-        )
+        state = ConversationState(messages=[Message(role="user", content="Test message")])
 
         result = await router.run(state)
 

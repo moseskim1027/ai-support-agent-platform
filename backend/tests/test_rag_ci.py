@@ -1,6 +1,5 @@
 """Tests for RAG (Retrieval-Augmented Generation) - CI version with mocked API calls"""
 
-from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -165,9 +164,7 @@ class TestRAGAgent:
         """Test RAG agent processing a knowledge query"""
         # Mock the LLM response
         mock_llm_response = Mock()
-        mock_llm_response.content = (
-            "Based on our support policy, we offer 24/7 assistance."
-        )
+        mock_llm_response.content = "Based on our support policy, we offer 24/7 assistance."
 
         # Create async mock
         async def mock_ainvoke(*args, **kwargs):
@@ -225,10 +222,7 @@ class TestRAGAgent:
             result = await rag_agent.run(state)
 
             assert result.response is not None
-            assert (
-                "error" in result.response.lower()
-                or "sorry" in result.response.lower()
-            )
+            assert "error" in result.response.lower() or "sorry" in result.response.lower()
 
 
 class TestRAGIntegration:
@@ -281,9 +275,7 @@ class TestRAGIntegration:
 
             mock_orchestrator.process = mock_process
 
-            response = client.post(
-                "/api/chat", json={"message": "Tell me about shipping options"}
-            )
+            response = client.post("/api/chat", json={"message": "Tell me about shipping options"})
 
             assert response.status_code == 200
             data = response.json()
