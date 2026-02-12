@@ -17,7 +17,7 @@ const WelcomeScreen = ({ onSamplePrompt }: WelcomeScreenProps) => {
     {
       category: 'General Help',
       prompt: 'Hello! What can you help me with?',
-      description: 'Ask anything - I\'ll route you to the right specialist',
+      description: "Ask anything - I'll route you to the right specialist",
     },
   ];
 
@@ -25,17 +25,13 @@ const WelcomeScreen = ({ onSamplePrompt }: WelcomeScreenProps) => {
     <div className="welcome-screen">
       <h2>Welcome to AI Support Agent</h2>
       <p>
-        I'm an intelligent support agent powered by multiple specialized AI agents.
-        I can help you with questions, perform actions, or just have a conversation.
+        I'm an intelligent support agent powered by multiple specialized AI agents. I can help you
+        with questions, perform actions, or just have a conversation.
       </p>
 
       <div className="sample-prompts">
         {samplePrompts.map((sample, index) => (
-          <div
-            key={index}
-            className="sample-prompt"
-            onClick={() => onSamplePrompt(sample.prompt)}
-          >
+          <div key={index} className="sample-prompt" onClick={() => onSamplePrompt(sample.prompt)}>
             <strong>{sample.category}</strong>
             <p>{sample.prompt}</p>
             <small>{sample.description}</small>

@@ -114,11 +114,7 @@ const ChatInterface = () => {
       )}
       {error && <div className="error-message">{error}</div>}
       <div ref={messagesEndRef} />
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        isLoading={isLoading}
-        disabled={isLoading}
-      />
+      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} disabled={isLoading} />
     </>
   );
 };
