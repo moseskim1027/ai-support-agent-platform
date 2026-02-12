@@ -137,10 +137,59 @@ Response:
 ## Features
 
 - **Multi-Agent Orchestration**: Router, RAG, Tool, and Supervisor agents using LangGraph
-- **Advanced RAG Pipeline**: Hybrid search with Qdrant vector database
-- **Real-time Chat**: FastAPI backend with WebSocket support
+- **Advanced RAG Pipeline**: Hybrid search combining dense (vector) and sparse (BM25) retrieval with Reciprocal Rank Fusion
+- **Real-time Chat**: FastAPI REST API and WebSocket support for streaming responses
+- **Conversation Persistence**: PostgreSQL-backed conversation history with full CRUD operations
+- **Authentication & Security**: JWT-based authentication with user registration and login
+- **Rate Limiting**: Intelligent rate limiting per user/IP with Redis-backed storage
 - **Observability**: Prometheus metrics and Grafana dashboards
-- **Production-Ready**: Docker containerization, health checks, and CI/CD
+- **Production-Ready**: Docker containerization, health checks, database migrations, and CI/CD
+
+## Feature Details
+
+### Conversation History Persistence
+
+All conversations are automatically persisted to PostgreSQL with:
+- Automatic conversation creation and tracking
+- Full message history storage with metadata
+- Agent type, intent, and sources tracking per message
+- Conversation retrieval API for loading past conversations
+- Database migrations with Alembic for schema management
+
+### Advanced RAG with Hybrid Search
+
+The RAG system now uses hybrid search combining:
+- **Dense Search**: Semantic similarity using OpenAI embeddings (1536-dimensional vectors)
+- **Sparse Search**: Keyword matching using BM25 algorithm
+- **Reciprocal Rank Fusion (RRF)**: Intelligent fusion of results from both methods
+- Configurable weights and fallback strategies for optimal retrieval
+
+### WebSocket Streaming
+
+Real-time streaming chat via WebSocket:
+- Bi-directional communication for live updates
+- Chunked response streaming for better UX
+- Connection management with auto-reconnect
+- Status updates (processing, complete, error)
+- Conversation persistence integrated
+
+### JWT Authentication
+
+Production-ready authentication system:
+- User registration with email validation
+- Secure password hashing with bcrypt
+- JWT token-based authentication
+- Protected routes with user context
+- User profile endpoints
+
+### Rate Limiting
+
+Intelligent request throttling:
+- Per-user rate limiting (when authenticated)
+- Per-IP rate limiting (for anonymous requests)
+- Redis-backed distributed rate limiting
+- Configurable limits per environment
+- Graceful error responses with retry headers
 
 ## Tech Stack
 
@@ -266,6 +315,26 @@ cd frontend
 yarn dev
 ```
 
+### Database Setup
+
+The application uses PostgreSQL with Alembic for migrations:
+
+```bash
+# Run migrations (if using Docker Compose, this happens automatically)
+cd backend
+alembic upgrade head
+
+# Create a new migration (after model changes)
+alembic revision --autogenerate -m "description"
+
+# Rollback last migration
+alembic downgrade -1
+```
+
+Current migrations:
+- `001`: Initial conversation tables (conversations, conversation_messages)
+- `002`: User authentication tables (users)
+
 ### Testing the Application
 
 **Web Interface:**
@@ -282,20 +351,72 @@ yarn dev
 # Health check
 curl http://localhost:8000/api/health
 
-# Chat with knowledge question (RAG agent)
+# Register a new user
+curl -X POST http://localhost:8000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "username": "testuser",
+    "password": "securepassword123",
+    "full_name": "Test User"
+  }'
+
+# Login (returns JWT token)
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123"
+  }'
+
+# Chat with knowledge question (RAG agent with hybrid search)
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "What is your return policy?"}'
 
-# Chat with action request (Tool agent)
+# Continue conversation (use conversation_id from previous response)
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Check order status for order 12345"}'
+  -d '{
+    "message": "How long does it take?",
+    "conversation_id": "your-conversation-id-here"
+  }'
 
-# Chat with greeting (Responder agent)
+# Get conversation history
+curl http://localhost:8000/api/conversations/{conversation_id}
+
+# Chat with authentication (for personalized features)
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{"message": "Hello!"}'
+
+# Get current user info
+curl http://localhost:8000/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**WebSocket Testing:**
+
+```javascript
+// Connect to WebSocket
+const ws = new WebSocket('ws://localhost:8000/api/ws/chat');
+
+// Listen for messages
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Received:', data);
+};
+
+// Send a message
+ws.send(JSON.stringify({
+  type: 'message',
+  message: 'What is your return policy?',
+  conversation_id: 'optional-conversation-id'
+}));
+
+// Ping to keep connection alive
+ws.send(JSON.stringify({ type: 'ping' }));
 ```
 
 ## Development
@@ -454,23 +575,37 @@ ai-support-agent-platform/
 │   │   ├── agents/          # Agent implementations
 │   │   │   ├── base.py      # Base agent class
 │   │   │   ├── router.py    # Intent classification
-│   │   │   ├── rag.py       # RAG with Qdrant
+│   │   │   ├── rag.py       # RAG with hybrid search
 │   │   │   ├── tool.py      # Function calling
-│   │   │   └── responder.py # Conversation handling
+│   │   │   ├── responder.py # Conversation handling
+│   │   │   └── state.py     # State management
 │   │   ├── orchestration/   # LangGraph workflows
 │   │   │   └── workflow.py  # Multi-agent orchestration
 │   │   ├── tools/           # Function calling tools
 │   │   │   ├── registry.py  # Tool registry
 │   │   │   └── sample_tools.py  # Sample implementations
 │   │   ├── api/             # FastAPI routes
-│   │   │   ├── chat.py      # Chat endpoint
+│   │   │   ├── chat.py      # Chat REST endpoint
+│   │   │   ├── websocket.py # WebSocket streaming
+│   │   │   ├── auth.py      # Authentication endpoints
 │   │   │   └── health.py    # Health checks
+│   │   ├── auth/            # Authentication & authorization
+│   │   │   ├── utils.py     # JWT and password utilities
+│   │   │   └── dependencies.py  # Auth dependencies
+│   │   ├── database/        # Database layer
+│   │   │   ├── models.py    # SQLAlchemy models
+│   │   │   ├── session.py   # Database session
+│   │   │   └── repositories.py  # Data access layer
+│   │   ├── middleware/      # Middleware
+│   │   │   └── rate_limit.py    # Rate limiting
 │   │   ├── observability/   # Metrics and monitoring
 │   │   ├── rag/             # RAG components
-│   │   │   ├── loader.py    # Document loading
-│   │   │   ├── vector_store.py  # Qdrant integration
-│   │   │   └── retriever.py # Document retrieval
-│   │   └── config.py        # Application configuration
+│   │   │   └── hybrid_retriever.py  # Hybrid search (dense + sparse)
+│   │   ├── config.py        # Application configuration
+│   │   └── main.py          # FastAPI application
+│   ├── alembic/             # Database migrations
+│   │   ├── versions/        # Migration files
+│   │   └── env.py           # Alembic environment
 │   ├── tests/               # Test suite
 │   │   ├── conftest.py      # Test fixtures
 │   │   ├── test_agents.py   # Agent unit tests
@@ -505,9 +640,15 @@ ai-support-agent-platform/
 - `GET /api/ready` - Readiness probe (K8s)
 - `GET /api/live` - Liveness probe (K8s)
 
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login and get JWT token
+- `GET /api/auth/me` - Get current user info (requires auth)
+
 ### Chat
-- `POST /api/chat` - Send message to agent
-- `GET /api/conversations/{id}` - Get conversation history
+- `POST /api/chat` - Send message to agent (REST, with rate limiting)
+- `WS /api/ws/chat` - WebSocket endpoint for streaming chat
+- `GET /api/conversations/{id}` - Get conversation history with all messages
 
 ### Metrics
 - `GET /metrics` - Prometheus metrics
@@ -621,11 +762,11 @@ kubectl logs -f deployment/backend -n production
 - [x] Tool agent with function calling
 - [x] Frontend React chat interface (TypeScript + Vite)
 - [x] Comprehensive testing suite (23 tests, 63% coverage)
-- [ ] Conversation history persistence
-- [ ] Advanced RAG with hybrid search
-- [ ] WebSocket support for real-time streaming
-- [ ] User authentication and authorization
-- [ ] Rate limiting and request throttling
+- [x] Conversation history persistence with PostgreSQL
+- [x] Advanced RAG with hybrid search (dense + sparse/BM25)
+- [x] WebSocket support for real-time streaming
+- [x] User authentication and authorization (JWT)
+- [x] Rate limiting and request throttling
 
 ## Contributing
 
