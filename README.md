@@ -191,6 +191,76 @@ Intelligent request throttling:
 - Configurable limits per environment
 - Graceful error responses with retry headers
 
+### Monitoring and Observability
+
+Comprehensive monitoring with Prometheus metrics and Grafana dashboards to track RAG pipeline performance and quality:
+
+![Grafana Dashboard](./docs/images/grafana_rag_monitoring.png)
+
+
+**Key Metrics Tracked:**
+
+1. **Token Usage**
+   - Prompt tokens: Input context size
+   - Completion tokens: Generated response size
+   - Total tokens: Combined usage for cost tracking
+
+2. **RAGAS Quality Scores**
+   - **Faithfulness** (76.6%): Measures factual accuracy of answers against retrieved context
+   - **Answer Relevancy** (76.3%): Measures how well answers address the user's question
+   - **Context Precision**: Evaluates relevance of retrieved documents
+   - **Context Recall**: Measures completeness of retrieved context
+
+3. **Performance Metrics**
+   - Request latency (retrieval, generation, evaluation, total)
+   - Token generation rate (tokens/minute)
+   - Query throughput (requests/minute)
+   - Success/failure rates by agent type
+
+4. **System Health**
+   - Total queries processed
+   - Error rates by type
+   - Agent routing distribution
+
+**Accessing Dashboards:**
+
+```bash
+# Start monitoring stack
+docker-compose up -d prometheus grafana
+
+# Access dashboards
+# Grafana: http://localhost:3001 (admin/admin)
+# Prometheus: http://localhost:9090
+```
+
+**Setting Up the RAG Monitoring Dashboard:**
+
+1. **Access Grafana**: Navigate to http://localhost:3001 and login with `admin/admin`
+
+2. **Add Prometheus Data Source** (if not already configured):
+   - Go to **Configuration** → **Data Sources**
+   - Click **Add data source** → Select **Prometheus**
+   - Set URL to `http://prometheus:9090`
+   - Click **Save & Test**
+
+3. **Import the Dashboard**:
+   - Click the **+** icon in the left sidebar → **Import**
+   - Click **Upload JSON file**
+   - Select `infrastructure/grafana/dashboards/rag-monitoring.json`
+   - Select the Prometheus data source
+   - Click **Import**
+
+The dashboard will now display real-time metrics for token usage, RAGAS quality scores, query rates, and system health.
+
+**Generating Test Metrics:**
+
+```bash
+# Generate sample metrics for dashboard visualization
+curl 'http://localhost:8000/api/test/simulate-metrics-sync?num_queries=30'
+```
+
+The monitoring system automatically tracks all RAG queries in real-time, providing visibility into both performance and quality metrics. RAGAS evaluation runs asynchronously to avoid adding latency to user requests.
+
 ## Tech Stack
 
 ### Frontend
@@ -765,70 +835,6 @@ kubectl rollout status deployment/backend -n production
 kubectl logs -f deployment/backend -n production
 ```
 
-## TODO: Production Implementation
-
-### Replace Simulated Tools with Real Implementations
-
-**Current State:** All action tools in `backend/app/tools/sample_tools.py` use simulated/random data for demonstration purposes.
-
-**Action Tools to Implement:**
-
-1. **`get_order_status`** (Currently: random status/tracking)
-   - [ ] Integrate with real e-commerce API or order management system
-   - [ ] Query actual order database (PostgreSQL table or external service)
-   - [ ] Return real order status, tracking numbers, and delivery estimates
-   - [ ] Add error handling for non-existent orders
-
-2. **`cancel_subscription`** (Currently: random refund amounts)
-   - [ ] Integrate with payment processor (Stripe, PayPal, etc.)
-   - [ ] Update subscription status in database
-   - [ ] Process actual refunds through payment API
-   - [ ] Send cancellation confirmation emails
-
-3. **`update_shipping_address`** (Currently: just returns success)
-   - [ ] Validate address using address verification API
-   - [ ] Update order in database or order management system
-   - [ ] Check if order can still be modified (not shipped yet)
-   - [ ] Notify warehouse/fulfillment system of address change
-
-4. **`get_account_balance`** (Currently: random balance)
-   - [ ] Query real user account/wallet system
-   - [ ] Integrate with payment processor for accurate balance
-   - [ ] Return actual transaction history
-   - [ ] Add currency conversion if multi-currency support needed
-
-**Implementation Guide:**
-
-```python
-# Example: Real order status implementation
-async def get_order_status(order_id: str) -> Dict[str, Any]:
-    # Option 1: Query your order database
-    async with get_db() as db:
-        order = await db.execute(
-            "SELECT * FROM orders WHERE id = :id",
-            {"id": order_id}
-        )
-        if not order:
-            raise ValueError(f"Order {order_id} not found")
-        return {
-            "order_id": order.id,
-            "status": order.status,
-            "tracking_number": order.tracking_number,
-            "estimated_delivery": order.estimated_delivery,
-        }
-
-    # Option 2: Call external e-commerce API
-    # response = await httpx.get(f"https://api.yourstore.com/orders/{order_id}")
-    # return response.json()
-```
-
-**Database Schema Needed:**
-- Orders table (id, user_id, status, tracking_number, created_at, etc.)
-- Subscriptions table (id, user_id, plan, status, next_billing_date, etc.)
-- Transactions table (id, user_id, amount, type, created_at, etc.)
-
-**Note:** Without real tool implementations, the Tool Agent will return simulated data that changes on each request.
-
 ## Roadmap
 
 - [x] Project setup and Docker configuration
@@ -848,7 +854,8 @@ async def get_order_status(order_id: str) -> Dict[str, Any]:
 - [x] WebSocket support for real-time streaming
 - [x] User authentication and authorization (JWT)
 - [x] Rate limiting and request throttling
-- [ ] Replace simulated tools with real implementations (orders, subscriptions, payments)
+- [x] RAGAS evaluation integration for RAG quality monitoring
+- [x] Comprehensive metrics dashboard (Prometheus + Grafana)
 
 ## Contributing
 
