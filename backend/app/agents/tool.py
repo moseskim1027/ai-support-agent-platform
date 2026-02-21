@@ -122,7 +122,9 @@ Response:"""
                 # Special handling for tools that expect natural language queries
                 # If the tool expects a "query" parameter but it's not provided,
                 # use the original user message
-                tool_spec = next((t for t in self.tool_registry.get_all_tools() if t["name"] == tool_name), None)
+                tool_spec = next(
+                    (t for t in self.tool_registry.get_all_tools() if t["name"] == tool_name), None
+                )
                 if tool_spec:
                     required_params = tool_spec["parameters"].get("required", [])
                     if "query" in required_params and "query" not in parameters:

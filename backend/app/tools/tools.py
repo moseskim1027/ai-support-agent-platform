@@ -38,7 +38,7 @@ class OrderStatusTool:
             return {
                 "success": False,
                 "error": "Could not identify order ID or customer name in query. "
-                        "Please provide an order ID (e.g., ORD-10001) or customer name."
+                "Please provide an order ID (e.g., ORD-10001) or customer name.",
             }
 
         # Match intent
@@ -48,47 +48,42 @@ class OrderStatusTool:
             return {
                 "success": False,
                 "error": "Could not understand the query intent. "
-                        "Please ask about order status or customer orders."
+                "Please ask about order status or customer orders.",
             }
 
         # Build SQL query
         try:
             sql_query_data = self.query_builder.build_query(query_intent)
         except ValueError as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
         # Execute query against database
         async with AsyncSessionLocal() as session:
             try:
                 result = await session.execute(
-                    text(sql_query_data['query']),
-                    sql_query_data['params']
+                    text(sql_query_data["query"]), sql_query_data["params"]
                 )
                 rows = result.fetchall()
 
                 if not rows:
                     entity_info = ", ".join([f"{e.type}={e.value}" for e in entities])
-                    return {
-                        "success": False,
-                        "error": f"No orders found for {entity_info}"
-                    }
+                    return {"success": False, "error": f"No orders found for {entity_info}"}
 
                 # Format results
                 orders = []
                 for row in rows:
-                    orders.append({
-                        "order_id": row[0],
-                        "customer_name": row[1],
-                        "status": row[2],
-                        "items": row[3],
-                        "total_amount": float(row[4]),
-                        "tracking_number": row[5],
-                        "estimated_delivery": row[6].isoformat() if row[6] else None,
-                        "created_at": row[7].isoformat(),
-                    })
+                    orders.append(
+                        {
+                            "order_id": row[0],
+                            "customer_name": row[1],
+                            "status": row[2],
+                            "items": row[3],
+                            "total_amount": float(row[4]),
+                            "tracking_number": row[5],
+                            "estimated_delivery": row[6].isoformat() if row[6] else None,
+                            "created_at": row[7].isoformat(),
+                        }
+                    )
 
                 return {
                     "success": True,
@@ -96,7 +91,7 @@ class OrderStatusTool:
                     "entities_found": [{"type": e.type, "value": e.value} for e in entities],
                     "intent": query_intent.intent_type,
                     "orders": orders,
-                    "count": len(orders)
+                    "count": len(orders),
                 }
             finally:
                 await session.close()
@@ -131,7 +126,7 @@ class WebSearchTool:
                         "format": "json",
                         "no_html": 1,
                         "skip_disambig": 1,
-                    }
+                    },
                 )
                 response.raise_for_status()
                 data = response.json()
@@ -141,34 +136,41 @@ class WebSearchTool:
 
                 # Abstract (main answer)
                 if data.get("Abstract"):
-                    results.append({
-                        "title": data.get("Heading", "Main Result"),
-                        "snippet": data["Abstract"],
-                        "url": data.get("AbstractURL", ""),
-                        "source": data.get("AbstractSource", "DuckDuckGo"),
-                        "type": "abstract"
-                    })
+                    results.append(
+                        {
+                            "title": data.get("Heading", "Main Result"),
+                            "snippet": data["Abstract"],
+                            "url": data.get("AbstractURL", ""),
+                            "source": data.get("AbstractSource", "DuckDuckGo"),
+                            "type": "abstract",
+                        }
+                    )
 
                 # Related topics
                 for topic in data.get("RelatedTopics", [])[:max_results]:
                     if isinstance(topic, dict) and "Text" in topic:
-                        results.append({
-                            "title": topic.get("Text", "")[:100],
-                            "snippet": topic.get("Text", ""),
-                            "url": topic.get("FirstURL", ""),
-                            "source": "DuckDuckGo",
-                            "type": "related"
-                        })
+                        results.append(
+                            {
+                                "title": topic.get("Text", "")[:100],
+                                "snippet": topic.get("Text", ""),
+                                "url": topic.get("FirstURL", ""),
+                                "source": "DuckDuckGo",
+                                "type": "related",
+                            }
+                        )
 
                 # Definition (for word definitions)
                 if data.get("Definition"):
-                    results.insert(0, {
-                        "title": f"Definition: {data.get('Heading', query)}",
-                        "snippet": data["Definition"],
-                        "url": data.get("DefinitionURL", ""),
-                        "source": data.get("DefinitionSource", "DuckDuckGo"),
-                        "type": "definition"
-                    })
+                    results.insert(
+                        0,
+                        {
+                            "title": f"Definition: {data.get('Heading', query)}",
+                            "snippet": data["Definition"],
+                            "url": data.get("DefinitionURL", ""),
+                            "source": data.get("DefinitionSource", "DuckDuckGo"),
+                            "type": "definition",
+                        },
+                    )
 
                 if not results:
                     return {
@@ -176,7 +178,7 @@ class WebSearchTool:
                         "query": query,
                         "results": [],
                         "count": 0,
-                        "message": "No instant results found. Try a more specific query."
+                        "message": "No instant results found. Try a more specific query.",
                     }
 
                 return {
@@ -184,19 +186,13 @@ class WebSearchTool:
                     "query": query,
                     "results": results[:max_results],
                     "count": len(results[:max_results]),
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat(),
                 }
 
         except httpx.HTTPError as e:
-            return {
-                "success": False,
-                "error": f"Search request failed: {str(e)}"
-            }
+            return {"success": False, "error": f"Search request failed: {str(e)}"}
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"An error occurred during search: {str(e)}"
-            }
+            return {"success": False, "error": f"An error occurred during search: {str(e)}"}
 
 
 def get_production_tools() -> List[Dict[str, Any]]:
@@ -210,8 +206,10 @@ def get_production_tools() -> List[Dict[str, Any]]:
             "func": order_tool.execute,
             "description": (
                 "Get order status and tracking information. "
-                "Can query by order ID (e.g., ORD-10001) or customer name (e.g., John Smith). "
-                "Returns order details including status, items, total, tracking number, and delivery date."
+                "Can query by order ID (e.g., ORD-10001) or customer name "
+                "(e.g., John Smith). "
+                "Returns order details including status, items, total, tracking number, "
+                "and delivery date."
             ),
             "parameters": {
                 "type": "object",

@@ -35,7 +35,8 @@ Analyze the user's message and classify the intent into one of these categories:
 3. **conversation**: General conversation, greetings, or chitchat
    Examples: "Hello", "Thanks for your help", "How are you?"
 
-Important: Web searches and external lookups should be classified as "action" since they require tool execution.
+Important: Web searches and external lookups should be classified as "action"
+since they require tool execution.
 
 User message: {message}
 
