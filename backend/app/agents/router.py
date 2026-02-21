@@ -22,14 +22,20 @@ class RouterAgent(BaseAgent):
 Analyze the user's message and classify the intent into one of these categories:
 
 1. **knowledge**: User is asking a question that requires retrieving information
-   from the knowledge base
-   Examples: "How do I reset my password?", "What are your return policies?"
+   from the internal knowledge base (company policies, procedures, documentation)
+   Examples: "What are your return policies?", "How do I reset my password?"
 
 2. **action**: User wants to perform an action or needs tool execution
-   Examples: "Check my order status", "Cancel my subscription"
+   Examples:
+   - "Check my order status", "Track order ORD-10001"
+   - "Show me orders for John Smith"
+   - "Search the web for...", "Look up information about...", "Find information on..."
+   - Any request that requires executing a tool or searching external sources
 
 3. **conversation**: General conversation, greetings, or chitchat
    Examples: "Hello", "Thanks for your help", "How are you?"
+
+Important: Web searches and external lookups should be classified as "action" since they require tool execution.
 
 User message: {message}
 
