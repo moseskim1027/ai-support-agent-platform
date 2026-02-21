@@ -34,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ showBackButton = false, onBack }) => {
       <div className="header-content">
         <div className="header-left">
           <h1>AI Support Agent Platform</h1>
-          <p>Multi-agent orchestration with LangGraph & OpenAI</p>
+          <p>Multi-agent orchestration with LangGraph</p>
         </div>
         <div className="header-right">
           <div className="user-menu">
