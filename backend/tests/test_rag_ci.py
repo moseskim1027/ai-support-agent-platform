@@ -127,12 +127,13 @@ class TestRAGRetrieval:
         """Test retrieving relevant documents"""
         query = "How do I get support?"
 
-        results = await rag_agent.retrieve(query, top_k=2)
+        documents, scores = await rag_agent.retrieve(query, top_k=2)
 
-        assert len(results) <= 2
-        assert all(isinstance(doc, str) for doc in results)
+        assert len(documents) <= 2
+        assert all(isinstance(doc, str) for doc in documents)
         # Mock returns support-related documents
-        assert any("support" in doc.lower() for doc in results)
+        assert any("support" in doc.lower() for doc in documents)
+        assert len(scores) == len(documents)
 
     @pytest.mark.asyncio
     async def test_retrieve_with_no_qdrant(self):
@@ -143,18 +144,20 @@ class TestRAGRetrieval:
                     agent = RAGAgent()
                     agent.qdrant = None
 
-                    results = await agent.retrieve("test query")
+                    documents, scores = await agent.retrieve("test query")
 
-                    assert results == []
+                    assert documents == []
+                    assert scores == []
 
     @pytest.mark.asyncio
     async def test_retrieve_handles_errors(self, rag_agent):
         """Test that retrieve handles errors gracefully"""
         rag_agent.qdrant.search.side_effect = Exception("Search failed")
 
-        results = await rag_agent.retrieve("test query")
+        documents, scores = await rag_agent.retrieve("test query")
 
-        assert results == []
+        assert documents == []
+        assert scores == []
 
 
 class TestRAGAgent:
