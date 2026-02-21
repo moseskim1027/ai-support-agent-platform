@@ -14,7 +14,6 @@ from typing import List
 from app.evaluation import EvaluationSample, RAGASEvaluator
 from app.observability import track_rag_request
 
-
 # ============================================================================
 # BEFORE: Basic RAG Agent (No Monitoring)
 # ============================================================================
@@ -84,9 +83,11 @@ class MonitoredRAGAgent:
                 recorder.record_retrieval_metrics(
                     duration=retrieval_duration,
                     num_contexts=len(contexts),
-                    avg_similarity=sum(similarity_scores) / len(similarity_scores)
-                    if similarity_scores
-                    else 0.0,
+                    avg_similarity=(
+                        sum(similarity_scores) / len(similarity_scores)
+                        if similarity_scores
+                        else 0.0
+                    ),
                     retrieval_method="hybrid",
                     success=len(contexts) > 0,
                 )
@@ -116,11 +117,11 @@ class MonitoredRAGAgent:
 
                 return answer
 
-            except Exception as e:
+            except Exception:
                 # Error is automatically recorded by track_rag_request
                 raise
 
-    async def _retrieve_with_scores(self, question: str):
+    async def _retrieve_with_scores(self, question: str) -> tuple[list[str], list[float]]:
         """
         Retrieve contexts with similarity scores
 
@@ -134,7 +135,9 @@ class MonitoredRAGAgent:
 
         return contexts, similarity_scores
 
-    async def _generate_with_tokens(self, question: str, contexts: List[str]):
+    async def _generate_with_tokens(
+        self, question: str, contexts: List[str]
+    ) -> tuple[str, dict[str, int]]:
         """
         Generate answer and return token usage
 
@@ -243,6 +246,13 @@ async def example_batch_processing():
 async def example_custom_metrics():
     """Example 3: Adding custom business metrics"""
     from app.observability import track_rag_request
+
+    # Placeholder functions for example
+    async def retrieve_contexts(query: str):
+        return ["context1", "context2"]
+
+    async def generate_answer(query: str, contexts):
+        return "Generated answer"
 
     with track_rag_request(model_name="custom-model") as recorder:
         # Standard RAG processing
