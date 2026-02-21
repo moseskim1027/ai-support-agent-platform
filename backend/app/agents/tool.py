@@ -9,7 +9,7 @@ from app.agents.base import BaseAgent
 from app.agents.state import ConversationState, Message
 from app.config import settings
 from app.tools.registry import ToolRegistry
-from app.tools.sample_tools import get_sample_tools
+from app.tools.tools import get_production_tools
 
 
 class ToolAgent(BaseAgent):
@@ -51,8 +51,8 @@ Response:"""
         self.prompt = ChatPromptTemplate.from_template(self.TOOL_PROMPT)
         self.tool_registry = ToolRegistry()
 
-        # Register sample tools
-        for tool_spec in get_sample_tools():
+        # Register production tools
+        for tool_spec in get_production_tools():
             self.tool_registry.register(
                 name=tool_spec["name"],
                 func=tool_spec["func"],
@@ -119,8 +119,21 @@ Response:"""
                 tool_name = tool_call.get("tool")
                 parameters = tool_call.get("parameters", {})
 
+                # Special handling for tools that expect natural language queries
+                # If the tool expects a "query" parameter but it's not provided,
+                # use the original user message
+                tool_spec = next(
+                    (t for t in self.tool_registry.get_all_tools() if t["name"] == tool_name), None
+                )
+                if tool_spec:
+                    required_params = tool_spec["parameters"].get("required", [])
+                    if "query" in required_params and "query" not in parameters:
+                        # Use the full user message as the query
+                        parameters = {"query": user_message.content}
+
                 try:
                     result = await self.tool_registry.execute(tool_name, **parameters)
+                    self.logger.info(f"Tool {tool_name} returned: {json.dumps(result, indent=2)}")
                     tool_results.append({"tool": tool_name, "success": True, "result": result})
                 except Exception as e:
                     self.logger.error(f"Tool execution failed: {e}")
