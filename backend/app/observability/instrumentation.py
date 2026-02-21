@@ -8,7 +8,7 @@ with Prometheus metrics and RAGAS evaluation.
 import logging
 import time
 from contextlib import contextmanager
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from app.config import settings
 from app.evaluation import RAGASMetrics
@@ -49,7 +49,7 @@ class RAGMetricsRecorder:
     def __init__(
         self,
         model_name: str = "unknown",
-        environment: str = None,
+        environment: Optional[str] = None,
     ):
         """
         Initialize metrics recorder
@@ -119,18 +119,16 @@ class RAGMetricsRecorder:
         total_tokens = prompt_tokens + completion_tokens
 
         metrics.token_usage.labels(model=self.model_name, type="prompt").inc(prompt_tokens)
-        metrics.token_usage.labels(model=self.model_name, type="completion").inc(
-            completion_tokens
-        )
+        metrics.token_usage.labels(model=self.model_name, type="completion").inc(completion_tokens)
         metrics.token_usage.labels(model=self.model_name, type="total").inc(total_tokens)
 
         # Token distributions
         metrics.token_usage_per_request.labels(model=self.model_name, type="prompt").observe(
             prompt_tokens
         )
-        metrics.token_usage_per_request.labels(
-            model=self.model_name, type="completion"
-        ).observe(completion_tokens)
+        metrics.token_usage_per_request.labels(model=self.model_name, type="completion").observe(
+            completion_tokens
+        )
         metrics.token_usage_per_request.labels(model=self.model_name, type="total").observe(
             total_tokens
         )

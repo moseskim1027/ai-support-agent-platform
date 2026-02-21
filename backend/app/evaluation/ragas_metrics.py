@@ -29,12 +29,7 @@ from datasets import Dataset
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
 from ragas import evaluate
-from ragas.metrics import (
-    answer_relevancy,
-    context_precision,
-    context_recall,
-    faithfulness,
-)
+from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
 
 logger = logging.getLogger(__name__)
 
@@ -186,9 +181,7 @@ class RAGASEvaluator:
             # Return empty metrics on error rather than failing
             return RAGASMetrics()
 
-    async def evaluate_batch(
-        self, samples: List[EvaluationSample]
-    ) -> List[RAGASMetrics]:
+    async def evaluate_batch(self, samples: List[EvaluationSample]) -> List[RAGASMetrics]:
         """
         Evaluate multiple samples efficiently
 

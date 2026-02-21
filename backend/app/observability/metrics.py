@@ -69,7 +69,7 @@ rag_total_duration = Histogram(
 token_usage = Counter(
     "llm_tokens_total",
     "Total LLM tokens used",
-    ["model", "type"],  # type: prompt, completion, or total
+    ["model", "type"],  # type can be: prompt, completion, or total
 )
 
 token_usage_per_request = Histogram(
@@ -145,7 +145,10 @@ retrieval_hit_rate = Counter(
 rag_request_status = Counter(
     "rag_request_status_total",
     "RAG request outcomes",
-    ["status", "error_type"],  # status: success, failure; error_type: retrieval, generation, evaluation
+    [
+        "status",
+        "error_type",
+    ],  # status: success, failure; error_type: retrieval, generation, evaluation
 )
 
 
