@@ -1,0 +1,192 @@
+{
+  "dashboard": {
+    "title": "RAG System Monitoring",
+    "tags": ["rag", "llm", "ragas"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Latency (P50, P95, P99)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(rag_total_duration_seconds_bucket[5m])) by (le, model))",
+            "legendFormat": "{{model}} - P50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(rag_total_duration_seconds_bucket[5m])) by (le, model))",
+            "legendFormat": "{{model}} - P95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(rag_total_duration_seconds_bucket[5m])) by (le, model))",
+            "legendFormat": "{{model}} - P99",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Token Consumption Over Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(llm_tokens_total{type=\"total\"}[5m])",
+            "legendFormat": "{{model}} - Total tokens/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(llm_tokens_total{type=\"prompt\"}[5m])",
+            "legendFormat": "{{model}} - Prompt tokens/sec",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(llm_tokens_total{type=\"completion\"}[5m])",
+            "legendFormat": "{{model}} - Completion tokens/sec",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Success vs Failure Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(rag_request_status_total{status=\"success\"}[5m])",
+            "legendFormat": "Success Rate",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(rag_request_status_total{status=\"failure\"}[5m])",
+            "legendFormat": "Failure Rate - {{error_type}}",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "RAGAS Faithfulness Score",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "ragas_faithfulness_score",
+            "legendFormat": "{{model}} - {{environment}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "short",
+            "min": 0,
+            "max": 1
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "RAGAS Answer Relevancy",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "ragas_answer_relevancy_score",
+            "legendFormat": "{{model}} - {{environment}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "short",
+            "min": 0,
+            "max": 1
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Retrieval Hit Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(rag_retrieval_hits_total{status=\"hit\"}[5m]) / (rate(rag_retrieval_hits_total{status=\"hit\"}[5m]) + rate(rag_retrieval_hits_total{status=\"miss\"}[5m]))",
+            "legendFormat": "{{model}} - Hit Rate",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 7,
+        "title": "Average Retrieval Similarity Score",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rag_retrieval_avg_similarity",
+            "legendFormat": "{{model}} - {{retrieval_method}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "short",
+            "min": 0,
+            "max": 1
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "Pipeline Stage Latency",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(rag_retrieval_duration_seconds_bucket[5m])) by (le, model))",
+            "legendFormat": "{{model}} - Retrieval (P95)",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(rag_generation_duration_seconds_bucket[5m])) by (le, model))",
+            "legendFormat": "{{model}} - Generation (P95)",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(rag_evaluation_duration_seconds_bucket[5m])) by (le))",
+            "legendFormat": "Evaluation (P95)",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 9,
+        "title": "RAGAS Metrics Distribution",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "sum(rate(ragas_metric_scores_bucket[5m])) by (le, metric_name)",
+            "legendFormat": "{{metric_name}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+      }
+    ],
+    "refresh": "30s",
+    "schemaVersion": 27,
+    "version": 1
+  }
+}
