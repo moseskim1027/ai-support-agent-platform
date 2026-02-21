@@ -4,7 +4,7 @@ on:
   push:
     branches: [develop]  # Run CI on develop pushes
   pull_request:
-    branches: [staging, main]  # Run CI only on PRs to staging/main (not develop)
+    branches: [develop, staging, main]  # Run CI on PRs to develop, staging, and main
 
 # Cancel in-progress runs when new commits are pushed
 concurrency:
