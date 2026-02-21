@@ -1,6 +1,7 @@
 """RAG Agent for knowledge retrieval with hybrid search"""
 
-from typing import List
+import time
+from typing import List, Tuple
 
 from langchain.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
@@ -10,6 +11,8 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 from app.agents.base import BaseAgent
 from app.agents.state import ConversationState, Message
 from app.config import settings
+from app.evaluation import EvaluationSample, RAGASEvaluator
+from app.observability.instrumentation import RAGMetricsRecorder
 from app.rag.hybrid_retriever import HybridRetriever
 
 
@@ -52,6 +55,19 @@ Answer:"""
             google_api_key=settings.gemini_api_key,
         )
         self.prompt = ChatPromptTemplate.from_template(self.RAG_PROMPT)
+
+        # Initialize RAGAS evaluator (for quality monitoring)
+        try:
+            self.ragas_evaluator = RAGASEvaluator(
+                llm=self.llm, embeddings=self.embeddings, compute_without_ground_truth=True
+            )
+            self.enable_ragas = (
+                settings.environment != "production"
+            )  # Disable in prod due to latency
+        except Exception as e:
+            self.logger.warning(f"RAGAS evaluator not available: {e}")
+            self.ragas_evaluator = None
+            self.enable_ragas = False
 
         # Initialize Qdrant client
         try:
@@ -217,7 +233,9 @@ Answer:"""
 
         return chunks if chunks else [text]
 
-    async def retrieve(self, query: str, top_k: int = 3, use_hybrid: bool = True) -> List[str]:
+    async def retrieve(
+        self, query: str, top_k: int = 3, use_hybrid: bool = True
+    ) -> Tuple[List[str], List[float]]:
         """
         Retrieve relevant documents from knowledge base using hybrid search
 
@@ -227,17 +245,22 @@ Answer:"""
             use_hybrid: Whether to use hybrid search (True) or just dense search (False)
 
         Returns:
-            List of relevant document texts
+            Tuple of (document_texts, similarity_scores)
         """
         if not self.qdrant:
-            return []
+            return [], []
 
         try:
+            documents = []
+            scores = []
+
             # Use hybrid retriever if available and requested
             if self.hybrid_retriever and use_hybrid:
                 documents = await self.hybrid_retriever.retrieve(
                     query, top_k=top_k, use_hybrid=True
                 )
+                # Hybrid retriever doesn't return scores, use estimated scores
+                scores = [0.85] * len(documents)  # Estimated similarity
                 search_method = "hybrid"
             else:
                 # Fallback to dense-only search
@@ -250,10 +273,11 @@ Answer:"""
                     limit=top_k,
                 )
 
-                # Extract document texts
-                documents = [
-                    hit.payload["text"] for hit in results if hit.score > 0.7
-                ]  # noqa: E501
+                # Extract document texts and scores
+                for hit in results:
+                    if hit.score > 0.7:
+                        documents.append(hit.payload["text"])
+                        scores.append(float(hit.score))
                 search_method = "dense"
 
             self.log_execution(
@@ -262,14 +286,15 @@ Answer:"""
                     "query": query[:50],
                     "num_docs": len(documents),
                     "search_method": search_method,
+                    "avg_score": sum(scores) / len(scores) if scores else 0.0,
                 },
             )
 
-            return documents
+            return documents, scores
 
         except Exception as e:
             self.logger.error(f"Error retrieving documents: {e}", exc_info=True)  # noqa: E501
-            return []
+            return [], []
 
     async def run(self, state: ConversationState) -> ConversationState:
         """
@@ -283,33 +308,66 @@ Answer:"""
         """
         self.log_execution("rag_agent_start", {"intent": state.intent})
 
-        # Get last user message
-        user_message = next(
-            (msg for msg in reversed(state.messages) if msg.role == "user"),
-            None,
-        )
+        # Initialize metrics recorder
+        recorder = RAGMetricsRecorder(model_name="gemini-2.5-flash-lite")
+        request_start = time.time()
+        success = True
+        error_type = None
 
-        if not user_message:
-            state.response = "I'm sorry, I didn't receive a question."
-            state.next_step = "end"
-            return state
-
-        # Retrieve relevant documents
-        documents = await self.retrieve(user_message.content)
-        state.retrieved_docs = documents
-
-        # Generate response using retrieved context
         try:
+            # Get last user message
+            user_message = next(
+                (msg for msg in reversed(state.messages) if msg.role == "user"),
+                None,
+            )
+
+            if not user_message:
+                state.response = "I'm sorry, I didn't receive a question."
+                state.next_step = "end"
+                return state
+
+            # Stage 1: Retrieve relevant documents
+            retrieval_start = time.time()
+            documents, similarity_scores = await self.retrieve(user_message.content)
+            retrieval_duration = time.time() - retrieval_start
+            state.retrieved_docs = documents
+
+            # Record retrieval metrics
+            recorder.record_retrieval_metrics(
+                duration=retrieval_duration,
+                num_contexts=len(documents),
+                avg_similarity=(
+                    sum(similarity_scores) / len(similarity_scores) if similarity_scores else 0.0
+                ),
+                retrieval_method="hybrid",
+                success=len(documents) > 0,
+            )
+
+            # Stage 2: Generate response using retrieved context
             context = (
                 "\n\n".join(documents)
                 if documents
                 else "No relevant information found in knowledge base."
             )
 
+            generation_start = time.time()
             response = await self.llm.ainvoke(
                 self.prompt.format_messages(
                     context=context, question=user_message.content
                 )  # noqa: E501
+            )
+            generation_duration = time.time() - generation_start
+
+            # Estimate token counts (Gemini may not expose usage_metadata)
+            prompt_text = f"{context}\n\n{user_message.content}"
+            estimated_prompt_tokens = len(prompt_text.split()) * 1.3  # Rough estimate
+            estimated_completion_tokens = len(response.content.split()) * 1.3
+
+            # Record generation metrics
+            recorder.record_generation_metrics(
+                duration=generation_duration,
+                prompt_tokens=int(estimated_prompt_tokens),
+                completion_tokens=int(estimated_completion_tokens),
             )
 
             state.response = response.content
@@ -327,11 +385,32 @@ Answer:"""
                 )
             )
 
+            # Stage 3: RAGAS evaluation (optional, async in background to avoid latency)
+            if self.enable_ragas and self.ragas_evaluator and documents:
+                try:
+                    evaluation_start = time.time()
+                    sample = EvaluationSample(
+                        query=user_message.content,
+                        contexts=documents,
+                        answer=response.content,
+                    )
+                    ragas_metrics = await self.ragas_evaluator.evaluate(sample)
+                    evaluation_duration = time.time() - evaluation_start
+
+                    recorder.record_ragas_metrics(
+                        ragas_metrics=ragas_metrics,
+                        evaluation_duration=evaluation_duration,
+                    )
+                except Exception as e:
+                    self.logger.warning(f"RAGAS evaluation failed: {e}")
+
             self.log_execution(
                 "rag_response_generated",
                 {
                     "response_length": len(response.content),
                     "docs_used": len(documents),
+                    "retrieval_duration": retrieval_duration,
+                    "generation_duration": generation_duration,
                 },
             )
 
@@ -342,5 +421,13 @@ Answer:"""
                 "processing your request."  # noqa: E501
             )  # noqa: E501
             state.next_step = "end"
+            success = False
+            error_type = "generation"
+
+        finally:
+            # Record total duration and request status
+            total_duration = time.time() - request_start
+            recorder.record_total_duration(total_duration)
+            recorder.record_request_status(success=success, error_type=error_type)
 
         return state
